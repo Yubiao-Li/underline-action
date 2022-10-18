@@ -224,23 +224,12 @@ export function UnderlineAction(opt) {
   function getSpanByKey(underlineKey) {
     return spanNodeMap[underlineKey] || [];
   }
-
-  function scrollToUnderline(underlineKey) {
-    const firstNode = spanNodeMap[underlineKey]?.[0];
-    if (firstNode) {
-      window.scrollTo({
-        top: window.scrollY + firstNode.getBoundingClientRect().y - 100,
-      });
-    } else {
-      console.error('片段不存在');
-    }
-  }
-
+  
   function computeDomPos() {
     let offset = 0;
     let lastTextNode = null;
     const treeWalker = document.createTreeWalker(
-      document.querySelector(opt.selector),
+      typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector,
       NodeFilter.SHOW_ALL,
       {
         acceptNode: opt.needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
@@ -276,6 +265,5 @@ export function UnderlineAction(opt) {
     getTextByStartEnd,
     removeSpanByKey,
     getSpanByKey,
-    scrollToUnderline,
   };
 }
