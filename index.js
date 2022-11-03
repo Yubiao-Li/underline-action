@@ -188,7 +188,7 @@ export function UnderlineAction(opt) {
 
   function getTextByStartEnd(start, end) {
     try {
-      if (end <= start) return;
+      if (end <= start) return '';
       const startNode = textNodeArr[start];
       const endNode = textNodeArr[end - 1];
       if (!startNode || !endNode) return '';
