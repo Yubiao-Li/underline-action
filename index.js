@@ -224,6 +224,11 @@ export function UnderlineAction(opt) {
   function getSpanByKey(underlineKey) {
     return spanNodeMap[underlineKey] || [];
   }
+
+  // 获取文章总字数
+  function getTotalCount() {
+    return textNodeArr.length
+  }
   
   function computeDomPos() {
     let offset = 0;
@@ -265,5 +270,6 @@ export function UnderlineAction(opt) {
     getTextByStartEnd,
     removeSpanByKey,
     getSpanByKey,
+    getTotalCount
   };
 }
