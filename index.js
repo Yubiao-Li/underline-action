@@ -231,10 +231,12 @@ export function UnderlineAction(opt) {
   }
   
   function computeDomPos() {
+    const dom = typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector
+    if(!dom) return;
     let offset = 0;
     let lastTextNode = null;
     const treeWalker = document.createTreeWalker(
-      typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector,
+      dom,
       NodeFilter.SHOW_ALL,
       {
         acceptNode: opt.needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
