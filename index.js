@@ -227,12 +227,21 @@ export function UnderlineAction(opt) {
 
   // 获取文章总字数
   function getTotalCount() {
-    return textNodeArr.length
+    return textNodeArr.length;
   }
-  
+
+  function getNativeRangeByStartAndEnd(start, end) {
+    if (end <= start) return null;
+    const range = document.createRange();
+    range.setStart(textNodeArr[start], start - textNodeArr[start]._wordoffset);
+    range.setEnd(textNodeArr[end - 1], end - textNodeArr[end - 1]._wordoffset);
+    return range;
+  }
+
   function computeDomPos() {
-    const dom = typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector
-    if(!dom) return;
+    const dom =
+      typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector;
+    if (!dom) return;
     let offset = 0;
     let lastTextNode = null;
     const treeWalker = document.createTreeWalker(
@@ -272,6 +281,7 @@ export function UnderlineAction(opt) {
     getTextByStartEnd,
     removeSpanByKey,
     getSpanByKey,
-    getTotalCount
+    getTotalCount,
+    getNativeRangeByStartAndEnd,
   };
 }
