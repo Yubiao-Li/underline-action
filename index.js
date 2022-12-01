@@ -38,7 +38,7 @@ export function UnderlineAction(opt) {
 
   function createHighlightSpan(content, props) {
     const span = document.createElement(opt.tag || 'span');
-    span.innerText = content;
+    span.textContent = content;
     span.className = 'underline';
     if (spanNodeMap[props.underlineKey]) {
       spanNodeMap[props.underlineKey].push(span);
