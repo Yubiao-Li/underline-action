@@ -18,8 +18,8 @@ export function needWrap(dom1, dom2) {
   }
   // 判断两个节点之间是否有br节点
   const range = document.createRange();
-  range.setStart(dom1, 0);
-  range.setEnd(dom2, 1);
+  range.setStart(dom2, 0);
+  range.setEnd(dom1, 1);
   const div = document.createElement('div');
   div.appendChild(range.cloneContents());
   return div.getElementsByTagName('br').length !== 0;
