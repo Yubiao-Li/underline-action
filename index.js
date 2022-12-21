@@ -1,4 +1,6 @@
-function findFirstBlockParent(dom) {
+export { splitRange } from './lib/splitRange';
+
+export function findFirstBlockParent(dom) {
   let parent = dom.parentNode;
   while (parent) {
     if (getComputedStyle(parent).display === 'block') {
