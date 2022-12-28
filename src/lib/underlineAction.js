@@ -241,11 +241,12 @@ export function UnderlineAction(opt) {
       let maxTopOffset = -999;
       rects.forEach((r, index) => {
         const s = document.createElement('span');
-        s.innerText = `${r.text}add long long text`; // 为了防止长度不够手动加点文本，反正看不到
+        s.innerText = `${r.text}`; // 为了防止长度不够手动加点文本，反正看不到
         s.style = `${r.style}; margin-left: ${
           index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right
         }px`;
         s.className = props.innerClass;
+        s.classList.add('mock_underline_child');
         span.appendChild(s);
         maxTopOffset = Math.max(
           maxTopOffset,
