@@ -137,8 +137,7 @@ export function UnderlineAction(opt) {
     }
   }
 
-  function mockUnderline(start, end, props = {}, container = document.body, temp=false) {
-    const containerRect = container.getBoundingClientRect();
+  function mockUnderline(start, end, props = {}, container = null, temp = false) {
     const underlineKey = opt.getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
@@ -223,10 +222,15 @@ export function UnderlineAction(opt) {
       }, []);
 
     function createMockSpan(rects) {
-      const span = document.createElement(opt.tag || 'span');
-
       // 同一行的元素他们的第一个块级父元素应该都是一样的
       const firstBlockParent = rects[0].firstBlockParent;
+      if (!container) {
+        container = firstBlockParent;
+      }
+      container.style.position = 'relative';
+      const containerRect = container.getClientRects()[0];
+      const span = document.createElement(opt.tag || 'span');
+
       const parentStyle = getComputedStyle(firstBlockParent);
       span.style = `position: absolute;color: transparent;z-index: 10;white-space: nowrap;overflow-x: hidden;padding: ${
         parentStyle.padding
@@ -241,12 +245,12 @@ export function UnderlineAction(opt) {
       let maxTopOffset = -999;
       rects.forEach((r, index) => {
         const s = document.createElement('span');
-        s.innerText = `${r.text}`; // 为了防止长度不够手动加点文本，反正看不到
+        s.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
         s.style = `${r.style}; margin-left: ${
           index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right
         }px`;
         s.className = props.innerClass;
-        s.classList.add('mock_underline_child');
+        // s.classList.add('mock_underline_child');
         span.appendChild(s);
         maxTopOffset = Math.max(
           maxTopOffset,
@@ -260,7 +264,7 @@ export function UnderlineAction(opt) {
       let containerWidth = parseFloat(getComputedStyle(span).width);
       span.style.width = `${containerWidth}px`;
       span.className = 'underline';
-      if(!temp) {
+      if (!temp) {
         if (spanMockUnderlineMap[underlineKey]) {
           spanMockUnderlineMap[underlineKey].push(span);
         } else {
@@ -277,8 +281,8 @@ export function UnderlineAction(opt) {
     }
 
     const mockUnderlineSpans = allRanges.map(rects => createMockSpan(rects));
-    if(temp) {
-      return mockUnderlineSpans;      
+    if (temp) {
+      return mockUnderlineSpans;
     }
     return underlineKey;
   }
