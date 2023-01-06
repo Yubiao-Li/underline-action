@@ -232,9 +232,13 @@ export function UnderlineAction(opt) {
       const span = document.createElement(opt.tag || 'span');
 
       const parentStyle = getComputedStyle(firstBlockParent);
+      // 同一行要以最高的位置为基准
+      const top = rects.reduce((pre, cur) => {
+        return Math.min(pre, cur.rect.top);
+      }, rects[0].rect.top);
       span.style = `position: absolute;color: transparent;z-index: 10;white-space: nowrap;overflow-x: hidden;padding: ${
         parentStyle.padding
-      }; padding-left:0;padding-right:0; top:${rects[0].rect.top - containerRect.top}px; left:${
+      }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
         rects[0].rect.left - containerRect.left
       }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
         parseFloat(parentStyle.lineHeight) / fontScale
