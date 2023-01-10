@@ -48,7 +48,6 @@ action.getTextByStartEnd(start, end)
 const spans = action.getSpanByKey(key)
 # key 划线id
 
-// 滚动到划线区域
-action.scrollToUnderline(key)
-# key 划线id
+// 获取dom总字数
+const num = action.getTotalCount()
 ```
