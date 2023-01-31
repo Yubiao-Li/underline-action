@@ -5,7 +5,7 @@ import { splitRange } from './splitRange';
 
 export function UnderlineAction(opt) {
   // 用来按顺序保存text节点方便后面遍历
-  const textNodeArr = [];
+  let textNodeArr = [];
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
@@ -382,6 +382,7 @@ export function UnderlineAction(opt) {
   }
 
   function computeDomPos() {
+    textNodeArr = [];
     const dom =
       typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector;
     if (!dom) return;
@@ -427,5 +428,6 @@ export function UnderlineAction(opt) {
     getTotalCount,
     getNativeRangeByStartAndEnd,
     mockUnderline,
+    computeDomPos
   };
 }
