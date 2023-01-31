@@ -12,7 +12,7 @@ export function UnderlineAction(opt) {
 
   function isTextNode(node) {
     // 只有文字节点才需要计算偏移量
-    return node.nodeName === '#text';
+    return node.nodeName === '#text' && node.textContent.length;
   }
 
   function createHighlightSpan(content, props) {
