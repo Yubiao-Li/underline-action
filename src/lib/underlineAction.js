@@ -15,75 +15,72 @@ export function UnderlineAction(opt) {
     return node.nodeName === '#text' && node.textContent.length;
   }
 
-  function createHighlightSpan(content, props) {
-    const span = document.createElement(opt.tag || 'span');
-    span.textContent = content;
-    span.className = 'underline';
-    if (spanNodeMap[props.underlineKey]) {
-      spanNodeMap[props.underlineKey].push(span);
-    } else {
-      spanNodeMap[props.underlineKey] = [span];
+  function insertSpanInRange(start, end, props, temp = false) {
+    const spans = [];
+    function createHighlightSpan(content, props) {
+      const span = document.createElement(opt.tag || 'span');
+      span.textContent = content;
+      span.className = 'underline';
+      spans.push(span);
+      Object.keys(props).forEach(key => (span[key] = props[key]));
+      return span;
     }
-    Object.keys(props).forEach(key => (span[key] = props[key]));
-    return span;
-  }
 
-  // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-  function resolveTextNode(textnode, startOffset, endOffset, props) {
-    const firstText = textnode.textContent.slice(0, startOffset);
-    const secondText = textnode.textContent.slice(startOffset, endOffset);
-    const lastText = textnode.textContent.slice(endOffset);
-    const behindTextNode = textnode.splitText(startOffset);
-    const fragment = document.createDocumentFragment();
-    const span = createHighlightSpan(secondText, props);
-    const spanTextNode = span.childNodes[0];
-    textNodeArr.fill(
-      spanTextNode,
-      textnode._wordoffset + startOffset,
-      textnode._wordoffset + endOffset
-    );
-    spanTextNode._wordoffset = textnode._wordoffset + startOffset;
-    fragment.appendChild(span);
+    // 分割textnode，把中间的取出来用span包住，并更新数组和链表
+    function resolveTextNode(textnode, startOffset, endOffset, props) {
+      const firstText = textnode.textContent.slice(0, startOffset);
+      const secondText = textnode.textContent.slice(startOffset, endOffset);
+      const lastText = textnode.textContent.slice(endOffset);
+      const behindTextNode = textnode.splitText(startOffset);
+      const fragment = document.createDocumentFragment();
+      const span = createHighlightSpan(secondText, props);
+      const spanTextNode = span.childNodes[0];
+      textNodeArr.fill(
+        spanTextNode,
+        textnode._wordoffset + startOffset,
+        textnode._wordoffset + endOffset
+      );
+      spanTextNode._wordoffset = textnode._wordoffset + startOffset;
+      fragment.appendChild(span);
 
-    if (lastText) {
-      const lastTextNode = document.createTextNode(lastText);
-      spanTextNode._next = lastTextNode;
-      lastTextNode._prev = spanTextNode;
-      lastTextNode._wordoffset = textnode._wordoffset + endOffset;
-      if (textnode._next) {
-        lastTextNode._next = textnode._next;
-        textnode._next._prev = lastTextNode;
-        textNodeArr.fill(
-          lastTextNode,
-          textnode._wordoffset + endOffset,
-          textnode._next._wordoffset
-        );
+      if (lastText) {
+        const lastTextNode = document.createTextNode(lastText);
+        spanTextNode._next = lastTextNode;
+        lastTextNode._prev = spanTextNode;
+        lastTextNode._wordoffset = textnode._wordoffset + endOffset;
+        if (textnode._next) {
+          lastTextNode._next = textnode._next;
+          textnode._next._prev = lastTextNode;
+          textNodeArr.fill(
+            lastTextNode,
+            textnode._wordoffset + endOffset,
+            textnode._next._wordoffset
+          );
+        } else {
+          textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset);
+        }
+        fragment.appendChild(lastTextNode);
+      } else if (textnode._next) {
+        spanTextNode._next = textnode._next;
+        textnode._next._prev = spanTextNode;
+      }
+
+      if (firstText) {
+        textnode._next = spanTextNode;
+        spanTextNode._prev = textnode;
       } else {
-        textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset);
+        if (textnode._prev) {
+          textnode._prev._next = spanTextNode;
+          spanTextNode._prev = textnode._prev;
+        }
+        textnode.remove();
       }
-      fragment.appendChild(lastTextNode);
-    } else if (textnode._next) {
-      spanTextNode._next = textnode._next;
-      textnode._next._prev = spanTextNode;
+
+      behindTextNode.parentNode.insertBefore(fragment, behindTextNode);
+      behindTextNode.remove();
+      return spanTextNode;
     }
 
-    if (firstText) {
-      textnode._next = spanTextNode;
-      spanTextNode._prev = textnode;
-    } else {
-      if (textnode._prev) {
-        textnode._prev._next = spanTextNode;
-        spanTextNode._prev = textnode._prev;
-      }
-      textnode.remove();
-    }
-
-    behindTextNode.parentNode.insertBefore(fragment, behindTextNode);
-    behindTextNode.remove();
-    return spanTextNode;
-  }
-
-  function insertSpanInRange(start, end, props) {
     try {
       if (end <= start) return;
       const underlineKey = opt.getKeyByRange({ start, end, props });
@@ -131,7 +128,12 @@ export function UnderlineAction(opt) {
         } while (curProcessTextNode);
       }
 
-      return underlineKey;
+      if (temp) {
+        return spans;
+      } else {
+        spanNodeMap[underlineKey] = spans;
+        return underlineKey;
+      }
     } catch (error) {
       console.error(error);
     }
@@ -428,6 +430,7 @@ export function UnderlineAction(opt) {
     getTotalCount,
     getNativeRangeByStartAndEnd,
     mockUnderline,
-    computeDomPos
+    computeDomPos,
+    mergeTextNode
   };
 }
