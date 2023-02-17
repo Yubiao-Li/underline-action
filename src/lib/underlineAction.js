@@ -431,6 +431,7 @@ export function UnderlineAction(opt) {
     getNativeRangeByStartAndEnd,
     mockUnderline,
     computeDomPos,
-    mergeTextNode
+    mergeTextNode,
+    textNodeArr
   };
 }
