@@ -1,7 +1,7 @@
-import { getScaleByDom } from './getScaleByDom';
-import { needWrap } from './needWrap';
-import { findFirstBlockParent } from './findFirstBlockParent';
-import { splitRange } from './splitRange';
+import { getScaleByDom } from './getScaleByDom.js';
+import { needWrap } from './needWrap.js';
+import { findFirstBlockParent } from './findFirstBlockParent.js';
+import { splitRange } from './splitRange.js';
 
 export function UnderlineAction(opt) {
   // 用来按顺序保存text节点方便后面遍历
@@ -140,6 +140,7 @@ export function UnderlineAction(opt) {
   }
 
   function mockUnderline(start, end, props = {}, container = null, temp = false) {
+    console.log(container)
     const underlineKey = opt.getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
@@ -250,20 +251,23 @@ export function UnderlineAction(opt) {
 
       let maxTopOffset = -999;
       rects.forEach((r, index) => {
-        const s = document.createElement('span');
-        s.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
-        s.style = `${r.style}; margin-left: ${
+        // inline-flex会影响下划线粗细，所以要再套一层
+        const flexS = document.createElement('span');
+        const innerS = document.createElement('span');
+        flexS.appendChild(innerS)
+        innerS.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
+        flexS.style = `${r.style}; margin-left: ${
           index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right
         }px`;
-        s.className = props.innerClass;
+        innerS.className = props.innerClass;
         // s.classList.add('mock_underline_child');
-        span.appendChild(s);
+        span.appendChild(flexS);
         maxTopOffset = Math.max(
           maxTopOffset,
-          span.getBoundingClientRect().top - s.getBoundingClientRect().top
+          span.getBoundingClientRect().top - flexS.getBoundingClientRect().top
         );
         // 先置为inline，用来算块级元素包含行内元素的高度差，算完后要用inline-flex保持宽度，并且保持位置
-        s.style.display = 'inline-flex';
+        flexS.style.display = 'inline-flex';
       });
       // 作者发现块级元素包含行内元素会导致块级元素和行内元素的top不同，而这个偏移值是我们模拟行内元素所需要的
       span.style.marginTop = `${maxTopOffset}px`;

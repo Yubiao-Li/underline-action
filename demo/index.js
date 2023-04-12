@@ -34,7 +34,9 @@ let underlineAction = UnderlineAction({
   needFilterNode,
 });
 
-underlineAction.mockUnderline(400, 550, {}, document.getElementsByClassName('js_underline_content')[0].childNodes);
-underlineAction.mockUnderline(401, 550, {}, document.getElementsByClassName('js_underline_content')[0].childNodes);
-underlineAction.mockUnderline(402, 550, {}, document.getElementsByClassName('js_underline_content')[0].childNodes);
-underlineAction.mockUnderline(403, 550, {}, document.getElementsByClassName('js_underline_content')[0].childNodes);
+underlineAction.mockUnderline(400, 550, {
+  innerClass: 'underline'
+}, document.body);
+// underlineAction.mockUnderline(401, 550, {}, document.body);
+// underlineAction.mockUnderline(402, 550, {}, document.body);
+// underlineAction.mockUnderline(403, 550, {}, document.body);

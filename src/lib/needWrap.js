@@ -1,4 +1,4 @@
-import { findFirstBlockParent } from './findFirstBlockParent';
+import { findFirstBlockParent } from './findFirstBlockParent.js';
 
 function findBr(dom1, dom2) {
   // 判断两个节点之间是否有br节点
