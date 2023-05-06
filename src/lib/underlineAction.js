@@ -35,11 +35,7 @@ export function UnderlineAction(opt) {
       const fragment = document.createDocumentFragment();
       const span = createHighlightSpan(secondText, props);
       const spanTextNode = span.childNodes[0];
-      textNodeArr.fill(
-        spanTextNode,
-        textnode._wordoffset + startOffset,
-        textnode._wordoffset + endOffset
-      );
+      textNodeArr.fill(spanTextNode, textnode._wordoffset + startOffset, textnode._wordoffset + endOffset);
       spanTextNode._wordoffset = textnode._wordoffset + startOffset;
       fragment.appendChild(span);
 
@@ -51,11 +47,7 @@ export function UnderlineAction(opt) {
         if (textnode._next) {
           lastTextNode._next = textnode._next;
           textnode._next._prev = lastTextNode;
-          textNodeArr.fill(
-            lastTextNode,
-            textnode._wordoffset + endOffset,
-            textnode._next._wordoffset
-          );
+          textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset, textnode._next._wordoffset);
         } else {
           textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset);
         }
@@ -108,20 +100,16 @@ export function UnderlineAction(opt) {
               { ...props, underlineKey }
             );
           } else if (curProcessTextNode === endTextNode) {
-            curProcessTextNode = resolveTextNode(
-              curProcessTextNode,
-              0,
-              end - curProcessTextNode._wordoffset,
-              { ...props, underlineKey }
-            );
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset, {
+              ...props,
+              underlineKey,
+            });
             break;
           } else {
-            curProcessTextNode = resolveTextNode(
-              curProcessTextNode,
-              0,
-              curProcessTextNode.textContent.length,
-              { ...props, underlineKey }
-            );
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length, {
+              ...props,
+              underlineKey,
+            });
           }
 
           curProcessTextNode = curProcessTextNode._next;
@@ -140,7 +128,6 @@ export function UnderlineAction(opt) {
   }
 
   function mockUnderline(start, end, props = {}, container = null, temp = false) {
-    console.log(container)
     const underlineKey = opt.getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
@@ -150,53 +137,48 @@ export function UnderlineAction(opt) {
       const nativeRange = document.createRange();
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
       nativeRange.selectNodeContents(span.childNodes[0]);
-      const textSplit = splitRange(nativeRange).map(r => ({ text: r.toString() }));
-      const rectSplit = [];
-      for (let rect of span.getClientRects()) {
-        if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
-          rectSplit[rectSplit.length - 1].left = Math.min(
-            rect.left,
-            rectSplit[rectSplit.length - 1].left
-          );
-          rectSplit[rectSplit.length - 1].right = Math.max(
-            rect.right,
-            rectSplit[rectSplit.length - 1].right
-          );
-        } else {
-          rectSplit.push({
-            top: rect.top,
-            right: rect.right,
-            left: rect.left,
-            bottom: rect.bottom,
-          });
-        }
-      }
+      const textSplit = splitRange(nativeRange).map(r => ({ text: r.toString(), rect: r.getBoundingClientRect() }));
+      // const rectSplit = [];
+      // for (let rect of span.getClientRects()) {
+      //   if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
+      //     rectSplit[rectSplit.length - 1].left = Math.min(
+      //       rect.left,
+      //       rectSplit[rectSplit.length - 1].left
+      //     );
+      //     rectSplit[rectSplit.length - 1].right = Math.max(
+      //       rect.right,
+      //       rectSplit[rectSplit.length - 1].right
+      //     );
+      //   } else {
+      //     rectSplit.push({
+      //       top: rect.top,
+      //       right: rect.right,
+      //       left: rect.left,
+      //       bottom: rect.bottom,
+      //     });
+      //   }
+      // }
 
-      if (rectSplit.length === textSplit.length) {
-        textSplit.forEach((item, index) => {
-          item.rect = rectSplit[index];
-          const computeStyle = getComputedStyle(span);
-          item.firstBlockParent = findFirstBlockParent(span);
+      // if (rectSplit.length === textSplit.length) {
+      textSplit.forEach(item => {
+        // item.rect = rectSplit[index];
+        const computeStyle = getComputedStyle(span);
+        item.firstBlockParent = findFirstBlockParent(span);
 
-          item.style = `text-align-last: justify; overflow-x: hidden; font-size:${
-            parseFloat(computeStyle.fontSize) / fontScale
-          }px; width: ${item.rect.right - item.rect.left}px; font-weight:${
-            computeStyle.fontWeight
-          }; font-family: ${computeStyle.fontFamily}; line-height: ${
-            parseFloat(computeStyle.lineHeight) / fontScale
-          }px`;
-        });
-        return textSplit;
-      } else {
-        return [];
-      }
+        item.style = `text-align-last: justify; overflow-x: hidden; font-size:${
+          parseFloat(computeStyle.fontSize) / fontScale
+        }px; width: ${item.rect.right - item.rect.left}px; font-weight:${computeStyle.fontWeight}; font-family: ${
+          computeStyle.fontFamily
+        }; line-height: ${parseFloat(computeStyle.lineHeight) / fontScale}px`;
+      });
+      return textSplit;
+      // } else {
+      //   return [];
+      // }
     }
     if (spans.length === 0) {
       const underlineKey = insertSpanInRange(start, end);
-      splitResults = getSpanByKey(underlineKey).reduce(
-        (pre, cur) => [...pre, ...getSpanSplitResult(cur)],
-        []
-      );
+      splitResults = getSpanByKey(underlineKey).reduce((pre, cur) => [...pre, ...getSpanSplitResult(cur)], []);
       // 用完就删掉
       removeSpanByKey(underlineKey);
     } else {
@@ -254,18 +236,13 @@ export function UnderlineAction(opt) {
         // inline-flex会影响下划线粗细，所以要再套一层
         const flexS = document.createElement('span');
         const innerS = document.createElement('span');
-        flexS.appendChild(innerS)
+        flexS.appendChild(innerS);
         innerS.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
-        flexS.style = `${r.style}; margin-left: ${
-          index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right
-        }px`;
+        flexS.style = `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`;
         innerS.className = props.innerClass;
         // s.classList.add('mock_underline_child');
         span.appendChild(flexS);
-        maxTopOffset = Math.max(
-          maxTopOffset,
-          span.getBoundingClientRect().top - flexS.getBoundingClientRect().top
-        );
+        maxTopOffset = Math.max(maxTopOffset, span.getBoundingClientRect().top - flexS.getBoundingClientRect().top);
         // 先置为inline，用来算块级元素包含行内元素的高度差，算完后要用inline-flex保持宽度，并且保持位置
         flexS.style.display = 'inline-flex';
       });
@@ -309,11 +286,7 @@ export function UnderlineAction(opt) {
     parentNode.childNodes.forEach(child => {
       if (isTextNode(child)) {
         if (!firstTextNode) firstTextNode = child;
-        textNodeArr.fill(
-          firstTextNode,
-          child._wordoffset,
-          child._wordoffset + child.textContent.length
-        );
+        textNodeArr.fill(firstTextNode, child._wordoffset, child._wordoffset + child.textContent.length);
         if (child._next) {
           child._next._prev = firstTextNode;
         }
@@ -331,10 +304,7 @@ export function UnderlineAction(opt) {
       const startNode = textNodeArr[start];
       const endNode = textNodeArr[end - 1];
       if (!startNode || !endNode) return '';
-      let text = startNode.textContent.slice(
-        start - startNode._wordoffset,
-        end - startNode._wordoffset
-      );
+      let text = startNode.textContent.slice(start - startNode._wordoffset, end - startNode._wordoffset);
       if (startNode !== endNode) {
         // 说明不止由startNode组成text
         let curNode = startNode;
@@ -387,10 +357,16 @@ export function UnderlineAction(opt) {
     return range;
   }
 
+  function getNodeAndOffset(offset) {
+    return {
+      node: textNodeArr[offset],
+      offset: offset - textNodeArr[offset]._wordoffset,
+    };
+  }
+
   function computeDomPos() {
     textNodeArr = [];
-    const dom =
-      typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector;
+    const dom = typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector;
     if (!dom) return;
     let offset = 0;
     let lastTextNode = null;
@@ -436,6 +412,6 @@ export function UnderlineAction(opt) {
     mockUnderline,
     computeDomPos,
     mergeTextNode,
-    textNodeArr
+    getNodeAndOffset,
   };
 }
