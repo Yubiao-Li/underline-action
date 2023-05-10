@@ -360,7 +360,7 @@ export function UnderlineAction(opt) {
   function getNodeAndOffset(offset) {
     return {
       node: textNodeArr[offset],
-      offset: offset - textNodeArr[offset]._wordoffset,
+      offset: offset - textNodeArr[offset]?._wordoffset,
     };
   }
 
