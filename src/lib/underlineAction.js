@@ -86,7 +86,7 @@ export function UnderlineAction(opt) {
           curProcessTextNode,
           start - curProcessTextNode._wordoffset,
           end - curProcessTextNode._wordoffset,
-          { ...props, underlineKey }
+          { ...props, underlineKey },
         );
       } else {
         // 如果是不同段，需要一直遍历到最后一个节点，全部分割一遍
@@ -97,7 +97,7 @@ export function UnderlineAction(opt) {
               curProcessTextNode,
               start - curProcessTextNode._wordoffset,
               curProcessTextNode.textContent.length,
-              { ...props, underlineKey }
+              { ...props, underlineKey },
             );
           } else if (curProcessTextNode === endTextNode) {
             curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset, {
@@ -137,7 +137,15 @@ export function UnderlineAction(opt) {
       const nativeRange = document.createRange();
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
       nativeRange.selectNodeContents(span.childNodes[0]);
-      const textSplit = splitRange(nativeRange).map(r => ({ text: r.toString(), rect: r.getBoundingClientRect() }));
+      const textSplit = splitRange(nativeRange).map(r => {
+        // 找第一个宽度不为0的矩形
+        const rects = r.getClientRects();
+        for (let rect of rects) {
+          if (rect.width > 0) {
+            return { text: r.toString(), rect };
+          }
+        }
+      });
       // const rectSplit = [];
       // for (let rect of span.getClientRects()) {
       //   if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
@@ -357,7 +365,15 @@ export function UnderlineAction(opt) {
     return range;
   }
 
-  function getNodeAndOffset(offset) {
+  function getNodeAndOffset(offset, preferPrevNode = false) {
+    if (preferPrevNode) {
+      if (textNodeArr[offset - 1]) {
+        return {
+          node: textNodeArr[offset - 1],
+          offset: offset - textNodeArr[offset - 1]._wordoffset,
+        };
+      }
+    }
     return {
       node: textNodeArr[offset],
       offset: offset - textNodeArr[offset]?._wordoffset,
@@ -376,7 +392,7 @@ export function UnderlineAction(opt) {
       {
         acceptNode: opt.needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
       },
-      true
+      true,
     );
     let currentNode = treeWalker.currentNode;
 
