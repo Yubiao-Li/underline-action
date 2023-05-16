@@ -229,7 +229,7 @@ export function UnderlineAction(opt) {
       const top = rects.reduce((pre, cur) => {
         return Math.min(pre, cur.rect.top);
       }, rects[0].rect.top);
-      span.style = `position: absolute;color: transparent;z-index: 10;white-space: nowrap;overflow-x: hidden;padding: ${
+      span.style = `position: absolute;color: transparent;z-index: 10;text-indent: 0;white-space: nowrap;overflow-x: hidden;padding: ${
         parentStyle.padding
       }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
         rects[0].rect.left - containerRect.left
