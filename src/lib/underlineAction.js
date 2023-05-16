@@ -3,7 +3,12 @@ import { needWrap } from './needWrap.js';
 import { findFirstBlockParent } from './findFirstBlockParent.js';
 import { splitRange } from './splitRange.js';
 
+function defaultGetKeyByRange({ start, end }) {
+  return `${start}-${end}`;
+}
+
 export function UnderlineAction(opt) {
+  !opt.getKeyByRange && (opt.getKeyByRange = defaultGetKeyByRange);
   // 用来按顺序保存text节点方便后面遍历
   let textNodeArr = [];
   // 保存key对应的span列表，方便删除
