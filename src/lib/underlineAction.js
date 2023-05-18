@@ -148,7 +148,7 @@ export function UnderlineAction(opt) {
           const rects = r.getClientRects();
           for (let rect of rects) {
             if (rect.width > 0) {
-              return { text: r.toString(), rect };
+              return { text: r.toString().replace('\n', ''), rect };
             }
           }
         })
