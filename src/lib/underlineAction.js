@@ -142,15 +142,17 @@ export function UnderlineAction(opt) {
       const nativeRange = document.createRange();
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
       nativeRange.selectNodeContents(span.childNodes[0]);
-      const textSplit = splitRange(nativeRange).map(r => {
-        // 找第一个宽度不为0的矩形
-        const rects = r.getClientRects();
-        for (let rect of rects) {
-          if (rect.width > 0) {
-            return { text: r.toString(), rect };
+      const textSplit = splitRange(nativeRange)
+        .map(r => {
+          // 找第一个宽度不为0的矩形
+          const rects = r.getClientRects();
+          for (let rect of rects) {
+            if (rect.width > 0) {
+              return { text: r.toString(), rect };
+            }
           }
-        }
-      });
+        })
+        .filter(i => i);
       // const rectSplit = [];
       // for (let rect of span.getClientRects()) {
       //   if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
