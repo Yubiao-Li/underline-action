@@ -3,6 +3,16 @@ import { needWrap } from './needWrap.js';
 import { findFirstBlockParent } from './findFirstBlockParent.js';
 import { splitRange } from './splitRange.js';
 import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
+import { Attach, SplitResult } from './type.js';
+
+declare global {
+  interface Text {
+    _prev: Text;
+    _next: Text;
+    _wordoffset: number;
+  }
+}
+
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
@@ -16,16 +26,15 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
 
-  const attachMap = {};
-
-  function isTextNode(node) {
+  const attachMap: Record<number, Attach[]> = {};
+  function isTextNode(node: Text) {
     // 只有文字节点才需要计算偏移量
     return node.nodeName === '#text' && node.textContent.length;
   }
 
-  function insertSpanInRange(start, end, props = {}, temp = false) {
+  function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
     let spans = [];
-    function createHighlightSpan(content) {
+    function createHighlightSpan(content: any) {
       const span = document.createElement(tag || 'span');
       span.textContent = content;
       span.className = 'underline';
@@ -35,13 +44,17 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-    function resolveTextNode(textnode, startOffset, endOffset) {
+    function resolveTextNode(
+      textnode: Text,
+      startOffset: number,
+      endOffset: number,
+    ) {
       const firstText = textnode.textContent.slice(0, startOffset);
       const secondText = textnode.textContent.slice(startOffset, endOffset);
-      const lastText = textnode.textContent.slice(endOffset);
+      const lastText = textnode.textContent.slice(endOffset) as string;
       const behindTextNode = textnode.splitText(startOffset);
       const fragment = document.createDocumentFragment();
-      const span = createHighlightSpan(secondText, props);
+      const span = createHighlightSpan(secondText);
       const spanTextNode = span.childNodes[0];
       textNodeArr.fill(spanTextNode, textnode._wordoffset + startOffset, textnode._wordoffset + endOffset);
       spanTextNode._wordoffset = textnode._wordoffset + startOffset;
@@ -120,9 +133,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       const attachMockSpans = [];
       // 处理attachnode
       Object.keys(attachMap).forEach(pos => {
-        if (pos >= start && pos < end) {
+        if (Number(pos) >= start && Number(pos) < end) {
           const attachs = attachMap[pos];
-          attachs.forEach(attach => {
+          attachs.forEach((attach: Attach) => {
             const { node } = attach;
             if (!attach.mockNode) {
               attach.mockNode = createAttachMockNode(node, props, attach);
@@ -147,18 +160,18 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
   }
 
-  function mockUnderline(start, end, props = {}, container = null, temp = false) {
+  function mockUnderline(start: number, end: number, props: any = {}, container = null, temp = false) {
     const underlineKey = getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
-    let splitResults;
+    let splitResults: any;
 
-    function getSpanSplitResult(span) {
+    function getSpanSplitResult(span: HTMLSpanElement): SplitResult[] {
       const nativeRange = document.createRange();
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
       nativeRange.selectNodeContents(span.childNodes[0]);
       const textSplit = splitRange(nativeRange)
-        .map(r => {
+        .map((r: { getClientRects: () => any; toString: () => string }) => {
           // 找第一个宽度不为0的矩形
           const rects = r.getClientRects();
           for (let rect of rects) {
@@ -167,7 +180,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
             }
           }
         })
-        .filter(i => i);
+        .filter((i: any) => i);
       // const rectSplit = [];
       // for (let rect of span.getClientRects()) {
       //   if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
@@ -190,7 +203,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       // }
 
       // if (rectSplit.length === textSplit.length) {
-      textSplit.forEach(item => {
+      textSplit.forEach((item: { firstBlockParent: any; style: string; rect: { right: number; left: number } }) => {
         // item.rect = rectSplit[index];
         const computeStyle = getComputedStyle(span);
         item.firstBlockParent = findFirstBlockParent(span);
@@ -208,13 +221,16 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
     if (spans.length === 0) {
       const underlineKey = insertSpanInRange(start, end);
-      splitResults = getSpanByKey(underlineKey).reduce((pre, cur) => [...pre, ...getSpanSplitResult(cur)], []);
+      splitResults = getSpanByKey(underlineKey).reduce(
+        (pre: any, cur: HTMLSpanElement) => [...pre, ...getSpanSplitResult(cur)],
+        [],
+      );
       // 用完就删掉
       removeSpanByKey(underlineKey);
     } else {
-      splitResults = spans.reduce((pre, cur) => [...pre, ...getSpanSplitResult(cur)], []);
+      splitResults = spans.reduce((pre: any, cur: HTMLSpanElement) => [...pre, ...getSpanSplitResult(cur)], []);
     }
-    let allRanges = {};
+    let allRanges: any = {};
     const linePosition = [];
     for (let splitResult of splitResults) {
       let find = false;
@@ -236,7 +252,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         return pre;
       }, []);
 
-    function createMockSpan(rects) {
+    function createMockSpan(rects: Array<SplitResult>) {
       // 同一行的元素他们的第一个块级父元素应该都是一样的
       const firstBlockParent = rects[0].firstBlockParent;
       if (!container) {
@@ -268,7 +284,10 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         const innerS = document.createElement('span');
         flexS.appendChild(innerS);
         innerS.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
-        flexS.style = `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`;
+        flexS.setAttribute(
+          'style',
+          `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`,
+        );
         innerS.className = props.innerClass;
         // s.classList.add('mock_underline_child');
         span.appendChild(flexS);
@@ -297,27 +316,27 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       return span;
     }
 
-    const mockUnderlineSpans = allRanges.map(rects => createMockSpan(rects));
+    const mockUnderlineSpans = allRanges.map((rects: SplitResult[]) => createMockSpan(rects));
     if (temp) {
       return mockUnderlineSpans;
     }
     return underlineKey;
   }
 
-  function mergeTextNode(span) {
+  function mergeTextNode(span: Element) {
     if (isAttachMockNode(span)) {
       return removeAttachMockNode(span);
     }
     const parentNode = span.parentNode;
-    let curTextNode;
+    let curTextNode: any;
     // 把所有子节点拿到外面
     while ((curTextNode = span.childNodes[0])) {
       parentNode.insertBefore(curTextNode, span);
     }
     span.remove();
     // 在合并textnode前，找到连续的textnode节点并重新指定_prev和_next
-    let firstTextNode;
-    parentNode.childNodes.forEach(child => {
+    let firstTextNode: Text;
+    parentNode.childNodes.forEach((child: Text) => {
       if (isTextNode(child)) {
         if (!firstTextNode) firstTextNode = child;
         textNodeArr.fill(firstTextNode, child._wordoffset, child._wordoffset + child.textContent.length);
@@ -332,7 +351,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     parentNode.normalize();
   }
 
-  function getTextByStartEnd(start, end) {
+  function getTextByStartEnd(start: number, end: number) {
     try {
       if (end <= start) return '';
       const startNode = textNodeArr[start];
@@ -357,10 +376,10 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
   }
 
-  function removeSpanByKey(underlineKey, mock = false) {
+  function removeSpanByKey(underlineKey: string | number, mock = false) {
     if (mock) {
       if (spanMockUnderlineMap[underlineKey]) {
-        spanMockUnderlineMap[underlineKey].forEach(s => s.remove());
+        spanMockUnderlineMap[underlineKey].forEach((s: { remove: () => any }) => s.remove());
         delete spanMockUnderlineMap[underlineKey];
       }
     } else {
@@ -371,7 +390,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
   }
 
-  function getSpanByKey(underlineKey, mock = false) {
+  function getSpanByKey(underlineKey: string | number, mock = false) {
     if (mock) {
       return spanMockUnderlineMap[underlineKey] || [];
     }
@@ -383,7 +402,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     return textNodeArr.length;
   }
 
-  function getNativeRangeByStartAndEnd(start, end) {
+  function getNativeRangeByStartAndEnd(start: number, end: number) {
     if (end <= start) return null;
     const range = document.createRange();
     range.setStart(textNodeArr[start], start - textNodeArr[start]._wordoffset);
@@ -391,7 +410,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     return range;
   }
 
-  function getNodeAndOffset(offset, preferPrevNode = false) {
+  function getNodeAndOffset(offset: number, preferPrevNode = false) {
     if (preferPrevNode) {
       if (textNodeArr[offset - 1]) {
         return {
@@ -412,15 +431,10 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     if (!dom) return;
     let offset = 0;
     let lastTextNode = null;
-    const treeWalker = document.createTreeWalker(
-      dom,
-      NodeFilter.SHOW_ALL,
-      {
-        acceptNode: needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
-      },
-      true,
-    );
-    let currentNode = treeWalker.currentNode;
+    const treeWalker = document.createTreeWalker(dom, NodeFilter.SHOW_ALL, {
+      acceptNode: needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
+    });
+    let currentNode = treeWalker.currentNode as any;
 
     while (currentNode) {
       currentNode._wordoffset = offset;
@@ -430,8 +444,8 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       const attachPosition = getAttachNodePosition(currentNode, lastTextNode);
       if (attachPosition) {
         attachMap[attachPosition]
-          ? attachMap[attachPosition].push({ node: currentNode })
-          : (attachMap[attachPosition] = [{ node: currentNode }]);
+          ? attachMap[attachPosition].push({ node: currentNode, mockNode: null, quote: 0 })
+          : (attachMap[attachPosition] = [{ node: currentNode, quote: 0, mockNode: null }]);
       }
 
       if (isTextNode(currentNode)) {
