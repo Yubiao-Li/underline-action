@@ -2,28 +2,31 @@ import { getScaleByDom } from './getScaleByDom.js';
 import { needWrap } from './needWrap.js';
 import { findFirstBlockParent } from './findFirstBlockParent.js';
 import { splitRange } from './splitRange.js';
+import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
 }
 
-export function UnderlineAction(opt) {
-  !opt.getKeyByRange && (opt.getKeyByRange = defaultGetKeyByRange);
+export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, getAttachNodePosition }) {
+  !getKeyByRange && (getKeyByRange = defaultGetKeyByRange);
   // 用来按顺序保存text节点方便后面遍历
   let textNodeArr = [];
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
 
+  const attachMap = {};
+
   function isTextNode(node) {
     // 只有文字节点才需要计算偏移量
     return node.nodeName === '#text' && node.textContent.length;
   }
 
-  function insertSpanInRange(start, end, props, temp = false) {
-    const spans = [];
-    function createHighlightSpan(content, props) {
-      const span = document.createElement(opt.tag || 'span');
+  function insertSpanInRange(start, end, props = {}, temp = false) {
+    let spans = [];
+    function createHighlightSpan(content) {
+      const span = document.createElement(tag || 'span');
       span.textContent = content;
       span.className = 'underline';
       spans.push(span);
@@ -32,7 +35,7 @@ export function UnderlineAction(opt) {
     }
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-    function resolveTextNode(textnode, startOffset, endOffset, props) {
+    function resolveTextNode(textnode, startOffset, endOffset) {
       const firstText = textnode.textContent.slice(0, startOffset);
       const secondText = textnode.textContent.slice(startOffset, endOffset);
       const lastText = textnode.textContent.slice(endOffset);
@@ -80,7 +83,8 @@ export function UnderlineAction(opt) {
 
     try {
       if (end <= start) return;
-      const underlineKey = opt.getKeyByRange({ start, end, props });
+      const underlineKey = getKeyByRange({ start, end, props });
+      props.underlineKey = underlineKey;
       const startTextNode = textNodeArr[start];
       const endTextNode = textNodeArr[end - 1];
       if (!startTextNode || !endTextNode) return;
@@ -91,7 +95,6 @@ export function UnderlineAction(opt) {
           curProcessTextNode,
           start - curProcessTextNode._wordoffset,
           end - curProcessTextNode._wordoffset,
-          { ...props, underlineKey },
         );
       } else {
         // 如果是不同段，需要一直遍历到最后一个节点，全部分割一遍
@@ -102,25 +105,37 @@ export function UnderlineAction(opt) {
               curProcessTextNode,
               start - curProcessTextNode._wordoffset,
               curProcessTextNode.textContent.length,
-              { ...props, underlineKey },
             );
           } else if (curProcessTextNode === endTextNode) {
-            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset, {
-              ...props,
-              underlineKey,
-            });
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset);
             break;
           } else {
-            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length, {
-              ...props,
-              underlineKey,
-            });
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length);
           }
 
           curProcessTextNode = curProcessTextNode._next;
         } while (curProcessTextNode);
       }
 
+      const attachMockSpans = [];
+      // 处理attachnode
+      Object.keys(attachMap).forEach(pos => {
+        if (pos >= start && pos < end) {
+          const attachs = attachMap[pos];
+          attachs.forEach(attach => {
+            const { node } = attach;
+            if (!attach.mockNode) {
+              attach.mockNode = createAttachMockNode(node, props, attach);
+              node.parentNode.insertBefore(attach.mockNode, node);
+              attach.quote = 0;
+            }
+            attach.quote++;
+            attachMockSpans.push(attach.mockNode);
+          });
+        }
+      });
+
+      spans = [...spans, ...attachMockSpans];
       if (temp) {
         return spans;
       } else {
@@ -133,7 +148,7 @@ export function UnderlineAction(opt) {
   }
 
   function mockUnderline(start, end, props = {}, container = null, temp = false) {
-    const underlineKey = opt.getKeyByRange({ start, end });
+    const underlineKey = getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
     let splitResults;
@@ -229,7 +244,7 @@ export function UnderlineAction(opt) {
       }
       container.style.position = 'relative';
       const containerRect = container.getClientRects()[0];
-      const span = document.createElement(opt.tag || 'span');
+      const span = document.createElement(tag || 'span');
 
       const parentStyle = getComputedStyle(firstBlockParent);
       // 同一行要以最高的位置为基准
@@ -290,8 +305,12 @@ export function UnderlineAction(opt) {
   }
 
   function mergeTextNode(span) {
+    if (isAttachMockNode(span)) {
+      return removeAttachMockNode(span);
+    }
     const parentNode = span.parentNode;
     let curTextNode;
+    // 把所有子节点拿到外面
     while ((curTextNode = span.childNodes[0])) {
       parentNode.insertBefore(curTextNode, span);
     }
@@ -389,7 +408,7 @@ export function UnderlineAction(opt) {
 
   function computeDomPos() {
     textNodeArr = [];
-    const dom = typeof opt.selector === 'string' ? document.querySelector(opt.selector) : opt.selector;
+    const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
     if (!dom) return;
     let offset = 0;
     let lastTextNode = null;
@@ -397,7 +416,7 @@ export function UnderlineAction(opt) {
       dom,
       NodeFilter.SHOW_ALL,
       {
-        acceptNode: opt.needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
+        acceptNode: needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
       },
       true,
     );
@@ -405,6 +424,16 @@ export function UnderlineAction(opt) {
 
     while (currentNode) {
       currentNode._wordoffset = offset;
+
+      // 找一下有没有文字节点要带上它一起划线
+      !getAttachNodePosition && (getAttachNodePosition = () => 0);
+      const attachPosition = getAttachNodePosition(currentNode, lastTextNode);
+      if (attachPosition) {
+        attachMap[attachPosition]
+          ? attachMap[attachPosition].push({ node: currentNode })
+          : (attachMap[attachPosition] = [{ node: currentNode }]);
+      }
+
       if (isTextNode(currentNode)) {
         if (lastTextNode) {
           // 做个链表

@@ -32,11 +32,39 @@ let underlineAction = UnderlineAction({
   selector: '.js_underline_content',
   getKeyByRange,
   needFilterNode,
+  getAttachNodePosition(node, preTextNode) {
+    if (node.classList && node.classList.contains('wx_img')) {
+      return preTextNode._wordoffset + preTextNode.textContent.length;
+    }
+  },
 });
 
-underlineAction.mockUnderline(400, 550, {
-  innerClass: 'underline'
-}, document.body);
+const spans = underlineAction.insertSpanInRange(
+  110,
+  135,
+  {
+    className: 'underline',
+  },
+  true,
+);
+underlineAction.insertSpanInRange(
+  110,
+  135,
+  {
+    className: 'underline',
+  },
+  true,
+);
+spans.forEach(s => underlineAction.mergeTextNode(s));
+
+// underlineAction.insertSpanInRange(
+//   110,
+//   135,
+//   {
+//     className: 'underline',
+//   },
+//   document.body,
+// );
 // underlineAction.mockUnderline(401, 550, {}, document.body);
 // underlineAction.mockUnderline(402, 550, {}, document.body);
 // underlineAction.mockUnderline(403, 550, {}, document.body);
