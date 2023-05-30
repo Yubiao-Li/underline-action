@@ -39,23 +39,28 @@ let underlineAction = UnderlineAction({
   },
 });
 
-const spans = underlineAction.insertSpanInRange(
-  110,
-  135,
-  {
-    className: 'underline',
-  },
-  true,
-);
-underlineAction.insertSpanInRange(
-  110,
-  135,
-  {
-    className: 'underline',
-  },
-  true,
-);
-spans.forEach(s => underlineAction.mergeTextNode(s));
+// 处理换行，交叉
+underlineAction.insertSpanInRange(2, 3, {
+  className: 'underline',
+});
+// underlineAction.insertSpanInRange(0, 3, {
+//   className: 'underline',
+// });
+// underlineAction.insertSpanInRange(0, 8, {
+//   className: 'underline',
+// });
+console.log(underlineAction.getSpans(0, 3));
+// underlineAction.insertSpanInRange(
+//   110,
+//   135,
+//   {
+//     className: 'underline',
+//   },
+//   true,
+// );
+// underlineAction.removeSpanByKey(0, 2)
+// underlineAction.removeSpanByKey(0, 8)
+// spans.forEach(s => underlineAction.mergeTextNode(s));
 
 // underlineAction.insertSpanInRange(
 //   110,
