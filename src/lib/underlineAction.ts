@@ -13,7 +13,6 @@ declare global {
   }
 }
 
-
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
 }
@@ -34,64 +33,54 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
 
   function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
     let spans = [];
-    function createHighlightSpan(content: any) {
+    function createHighlightSpan() {
       const span = document.createElement(tag || 'span');
-      span.textContent = content;
       span.className = 'underline';
       spans.push(span);
       Object.keys(props).forEach(key => (span[key] = props[key]));
       return span;
     }
 
+    function splitTextNode(textnode: Text, offset: number) {
+      if (offset === 0) {
+        return textnode;
+      }
+      if (textnode.textContent.length === offset) {
+        return textnode._next;
+      }
+      const behindTextNode = textnode.splitText(offset);
+      behindTextNode._prev = textnode;
+      behindTextNode._next = textnode._next;
+      behindTextNode._wordoffset = textnode._wordoffset + offset;
+      textnode._next = behindTextNode;
+
+      textNodeArr.fill(
+        behindTextNode,
+        behindTextNode._wordoffset,
+        behindTextNode.textContent.length + behindTextNode._wordoffset,
+      );
+
+      return behindTextNode;
+    }
+
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-    function resolveTextNode(
-      textnode: Text,
-      startOffset: number,
-      endOffset: number,
-    ) {
-      const firstText = textnode.textContent.slice(0, startOffset);
-      const secondText = textnode.textContent.slice(startOffset, endOffset);
-      const lastText = textnode.textContent.slice(endOffset) as string;
-      const behindTextNode = textnode.splitText(startOffset);
-      const fragment = document.createDocumentFragment();
-      const span = createHighlightSpan(secondText);
-      const spanTextNode = span.childNodes[0];
-      textNodeArr.fill(spanTextNode, textnode._wordoffset + startOffset, textnode._wordoffset + endOffset);
-      spanTextNode._wordoffset = textnode._wordoffset + startOffset;
-      fragment.appendChild(span);
-
-      if (lastText) {
-        const lastTextNode = document.createTextNode(lastText);
-        spanTextNode._next = lastTextNode;
-        lastTextNode._prev = spanTextNode;
-        lastTextNode._wordoffset = textnode._wordoffset + endOffset;
-        if (textnode._next) {
-          lastTextNode._next = textnode._next;
-          textnode._next._prev = lastTextNode;
-          textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset, textnode._next._wordoffset);
-        } else {
-          textNodeArr.fill(lastTextNode, textnode._wordoffset + endOffset);
-        }
-        fragment.appendChild(lastTextNode);
-      } else if (textnode._next) {
-        spanTextNode._next = textnode._next;
-        textnode._next._prev = spanTextNode;
+    function resolveTextNode(textnode: Text, startOffset: number, endOffset: number) {
+      // console.log(textnode, startOffset, endOffset)
+      const len = textnode.textContent.length;
+      let secondNode = textnode,
+        lastTextNode;
+      if (startOffset !== 0) {
+        secondNode = splitTextNode(textnode, startOffset);
+      }
+      if (endOffset !== len) {
+        lastTextNode = splitTextNode(secondNode, endOffset);
       }
 
-      if (firstText) {
-        textnode._next = spanTextNode;
-        spanTextNode._prev = textnode;
-      } else {
-        if (textnode._prev) {
-          textnode._prev._next = spanTextNode;
-          spanTextNode._prev = textnode._prev;
-        }
-        textnode.remove();
-      }
+      const span = createHighlightSpan();
+      secondNode.parentElement.insertBefore(span, secondNode);
+      span.appendChild(secondNode);
 
-      behindTextNode.parentNode.insertBefore(fragment, behindTextNode);
-      behindTextNode.remove();
-      return spanTextNode;
+      return secondNode;
     }
 
     try {
@@ -181,30 +170,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
           }
         })
         .filter((i: any) => i);
-      // const rectSplit = [];
-      // for (let rect of span.getClientRects()) {
-      //   if (rectSplit.length && rectSplit[rectSplit.length - 1].top === rect.top) {
-      //     rectSplit[rectSplit.length - 1].left = Math.min(
-      //       rect.left,
-      //       rectSplit[rectSplit.length - 1].left
-      //     );
-      //     rectSplit[rectSplit.length - 1].right = Math.max(
-      //       rect.right,
-      //       rectSplit[rectSplit.length - 1].right
-      //     );
-      //   } else {
-      //     rectSplit.push({
-      //       top: rect.top,
-      //       right: rect.right,
-      //       left: rect.left,
-      //       bottom: rect.bottom,
-      //     });
-      //   }
-      // }
-
-      // if (rectSplit.length === textSplit.length) {
       textSplit.forEach((item: { firstBlockParent: any; style: string; rect: { right: number; left: number } }) => {
-        // item.rect = rectSplit[index];
         const computeStyle = getComputedStyle(span);
         item.firstBlockParent = findFirstBlockParent(span);
 
@@ -215,9 +181,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         }; line-height: ${parseFloat(computeStyle.lineHeight) / fontScale}px`;
       });
       return textSplit;
-      // } else {
-      //   return [];
-      // }
     }
     if (spans.length === 0) {
       const underlineKey = insertSpanInRange(start, end);
