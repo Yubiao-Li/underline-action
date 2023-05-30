@@ -1,4 +1,4 @@
-import { UnderlineAction } from '../src/lib/underlineAction.js';
+import { UnderlineAction } from '../dist/lib/underlineAction.js';
 
 export function getKeyByRange(range) {
   return `${range.start}-${range.end}`;
