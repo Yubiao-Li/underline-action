@@ -40,8 +40,16 @@ let underlineAction = UnderlineAction({
 });
 
 const spans = underlineAction.insertSpanInRange(
-  0,
-  200,
+  4,
+  5,
+  {
+    className: 'underline',
+  },
+  true,
+);
+ underlineAction.insertSpanInRange(
+  4,
+  5,
   {
     className: 'underline',
   },

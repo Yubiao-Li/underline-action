@@ -63,9 +63,40 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       return behindTextNode;
     }
 
+    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number) {
+      const len = textnode.textContent.length;
+      const parentNode = textnode.parentElement;
+      const firstNode = parentNode.cloneNode();
+      const secondNode = parentNode.cloneNode();
+      const lastNode = parentNode.cloneNode();
+      let lastTextNode;
+      let secondTextNode = textnode;
+      if (startOffset !== 0) {
+        secondTextNode = splitTextNode(textnode, startOffset);
+        firstNode.appendChild(textnode);
+        parentNode.parentElement.insertBefore(firstNode, parentNode);
+      }
+      if (endOffset !== len) {
+        lastTextNode = splitTextNode(secondTextNode, endOffset - startOffset);
+        lastNode.appendChild(lastTextNode);
+      }
+      const highlightSpan = createHighlightSpan();
+      secondNode.appendChild(secondTextNode);
+      highlightSpan.appendChild(secondNode);
+      parentNode.parentElement.insertBefore(highlightSpan, parentNode);
+      if (lastTextNode) {
+        parentNode.parentElement.insertBefore(lastNode, parentNode);
+      }
+      parentNode.remove();
+      return secondTextNode;
+    }
+
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
     function resolveTextNode(textnode: Text, startOffset: number, endOffset: number) {
-      // console.log(textnode, startOffset, endOffset)
+      console.log(textnode.parentElement.tagName);
+      if (textnode.parentElement.tagName === 'SUB' || textnode.parentElement.tagName === 'SUP') {
+        return resolveSpecialNode(textnode, startOffset, endOffset);
+      }
       const len = textnode.textContent.length;
       let secondNode = textnode,
         lastTextNode;
@@ -73,7 +104,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         secondNode = splitTextNode(textnode, startOffset);
       }
       if (endOffset !== len) {
-        lastTextNode = splitTextNode(secondNode, endOffset);
+        lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
       const span = createHighlightSpan();
