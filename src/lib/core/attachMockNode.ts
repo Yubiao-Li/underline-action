@@ -31,7 +31,7 @@ export function removeAttachMockNode(node: Element) {
   node._attach.quote--;
   if (node._attach.quote === 0) {
     node.remove();
-    node._attach.node.onRemove && node._attach.node.onRemove();
+    // node._attach.node.onRemove && node._attach.node.onRemove();
   }
 }
 

@@ -26,7 +26,12 @@ const action = UnderlineAction({
     }
 
     return NodeFilter.FILTER_ACCEPT;
-  }
+  },
+  getAttachNode(node) { // 不计入总字数的节点，但是如果被跨过会被划线，返回true，目前仅支持文本节点
+    if (node.parentElement.tagName === 'SUP') {
+      return true;
+    }
+  },
 });
 
 // 划线

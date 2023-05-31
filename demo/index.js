@@ -32,37 +32,28 @@ let underlineAction = UnderlineAction({
   selector: '.js_underline_content',
   getKeyByRange,
   needFilterNode,
-  getAttachNodePosition(node, preTextNode) {
-    if (node.classList && node.classList.contains('wx_img')) {
-      return preTextNode._wordoffset + preTextNode.textContent.length;
+  getAttachNode(node) {
+    if (node.parentElement.tagName === 'SUP') {
+      return true;
     }
   },
 });
 
 const spans = underlineAction.insertSpanInRange(
-  4,
+  0,
   5,
   {
     className: 'underline',
   },
   true,
 );
- underlineAction.insertSpanInRange(
-  4,
-  5,
+underlineAction.insertSpanInRange(
+  3,
+  7,
   {
     className: 'underline',
   },
-  true,
 );
-// underlineAction.insertSpanInRange(
-//   4,
-//   20,
-//   {
-//     className: 'underline',
-//   },
-//   true,
-// );
 underlineAction.insertSpanInRange(
   110,
   135,
@@ -72,6 +63,7 @@ underlineAction.insertSpanInRange(
   true,
 );
 spans.forEach(s => underlineAction.mergeTextNode(s));
+underlineAction.removeSpanByKey('3-7');
 
 // underlineAction.insertSpanInRange(
 //   110,

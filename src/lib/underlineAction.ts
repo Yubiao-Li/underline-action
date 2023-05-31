@@ -2,7 +2,7 @@ import { getScaleByDom } from './getScaleByDom.js';
 import { needWrap } from './needWrap.js';
 import { findFirstBlockParent } from './findFirstBlockParent.js';
 import { splitRange } from './splitRange.js';
-import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
+// import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, SplitResult } from './type.js';
 
 declare global {
@@ -11,13 +11,16 @@ declare global {
     _next: Text;
     _wordoffset: number;
   }
+  interface Node {
+    _isAttach: boolean;
+  }
 }
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
 }
 
-export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, getAttachNodePosition }) {
+export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, getAttachNode }) {
   !getKeyByRange && (getKeyByRange = defaultGetKeyByRange);
   // 用来按顺序保存text节点方便后面遍历
   let textNodeArr = [];
@@ -33,9 +36,10 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
 
   function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
     let spans = [];
-    function createHighlightSpan() {
+    function createHighlightSpan(isAttach?: boolean) {
       const span = document.createElement(tag || 'span');
       span.className = 'underline';
+      span._isAttach = isAttach;
       spans.push(span);
       Object.keys(props).forEach(key => (span[key] = props[key]));
       return span;
@@ -63,7 +67,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       return behindTextNode;
     }
 
-    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number) {
+    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number, isAttach: boolean) {
       const len = textnode.textContent.length;
       const parentNode = textnode.parentElement;
       const firstNode = parentNode.cloneNode();
@@ -80,7 +84,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         lastTextNode = splitTextNode(secondTextNode, endOffset - startOffset);
         lastNode.appendChild(lastTextNode);
       }
-      const highlightSpan = createHighlightSpan();
+      const highlightSpan = createHighlightSpan(isAttach);
       secondNode.appendChild(secondTextNode);
       highlightSpan.appendChild(secondNode);
       parentNode.parentElement.insertBefore(highlightSpan, parentNode);
@@ -92,10 +96,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-    function resolveTextNode(textnode: Text, startOffset: number, endOffset: number) {
-      console.log(textnode.parentElement.tagName);
+    function resolveTextNode(textnode: Text, startOffset: number, endOffset: number, isAttach?: boolean) {
       if (textnode.parentElement.tagName === 'SUB' || textnode.parentElement.tagName === 'SUP') {
-        return resolveSpecialNode(textnode, startOffset, endOffset);
+        return resolveSpecialNode(textnode, startOffset, endOffset, isAttach);
       }
       const len = textnode.textContent.length;
       let secondNode = textnode,
@@ -107,7 +110,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
-      const span = createHighlightSpan();
+      const span = createHighlightSpan(isAttach);
       secondNode.parentElement.insertBefore(span, secondNode);
       span.appendChild(secondNode);
 
@@ -150,25 +153,26 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         } while (curProcessTextNode);
       }
 
-      const attachMockSpans = [];
       // 处理attachnode
       Object.keys(attachMap).forEach(pos => {
         if (Number(pos) >= start && Number(pos) < end) {
           const attachs = attachMap[pos];
           attachs.forEach((attach: Attach) => {
             const { node } = attach;
-            if (!attach.mockNode) {
-              attach.mockNode = createAttachMockNode(node, props, attach);
-              node.parentNode.insertBefore(attach.mockNode, node);
-              attach.quote = 0;
-            }
-            attach.quote++;
-            attachMockSpans.push(attach.mockNode);
+            // if (!attach.mockNode) {
+            //   attach.mockNode = createAttachMockNode(node, props, attach);
+            //   node.parentNode.insertBefore(attach.mockNode, node);
+            //   attach.quote = 0;
+            // }
+            // attach.quote++;
+
+            resolveTextNode(node, 0, node.textContent.length, true);
+            // span._isAttach = true;
           });
         }
       });
 
-      spans = [...spans, ...attachMockSpans];
+      // spans = [...spans, ...attachMockSpans];
       if (temp) {
         return spans;
       } else {
@@ -318,9 +322,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   }
 
   function mergeTextNode(span: Element) {
-    if (isAttachMockNode(span)) {
-      return removeAttachMockNode(span);
-    }
+    // if (isAttachMockNode(span)) {
+    //   return removeAttachMockNode(span);
+    // }
     const parentNode = span.parentNode;
     let curTextNode: any;
     // 把所有子节点拿到外面
@@ -328,6 +332,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       parentNode.insertBefore(curTextNode, span);
     }
     span.remove();
+    if (span._isAttach) return;
     // 在合并textnode前，找到连续的textnode节点并重新指定_prev和_next
     let firstTextNode: Text;
     parentNode.childNodes.forEach((child: Text) => {
@@ -434,15 +439,15 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       currentNode._wordoffset = offset;
 
       // 找一下有没有文字节点要带上它一起划线
-      !getAttachNodePosition && (getAttachNodePosition = () => 0);
-      const attachPosition = getAttachNodePosition(currentNode, lastTextNode);
-      if (attachPosition) {
+      !getAttachNode && (getAttachNode = () => false);
+      if (getAttachNode(currentNode, lastTextNode) && isTextNode(currentNode)) {
+        const attachPosition = lastTextNode._wordoffset + lastTextNode.textContent.length;
         attachMap[attachPosition]
           ? attachMap[attachPosition].push({ node: currentNode, mockNode: null, quote: 0 })
           : (attachMap[attachPosition] = [{ node: currentNode, quote: 0, mockNode: null }]);
       }
 
-      if (isTextNode(currentNode)) {
+      if (isTextNode(currentNode) && !getAttachNode(currentNode)) {
         if (lastTextNode) {
           // 做个链表
           lastTextNode._next = currentNode;

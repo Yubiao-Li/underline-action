@@ -8,5 +8,5 @@ export interface SplitResult {
 export interface Attach {
   quote: number;
   mockNode: Node;
-  node: Element;
+  node: Text;
 }
