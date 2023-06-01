@@ -39,31 +39,31 @@ let underlineAction = UnderlineAction({
   },
 });
 
-const spans = underlineAction.insertSpanInRange(
+const spans = underlineAction.mockUnderline(
   0,
   5,
   {
     className: 'underline',
   },
-  true,
+  document.body
 );
-underlineAction.insertSpanInRange(
-  3,
-  7,
-  {
-    className: 'underline',
-  },
-);
-underlineAction.insertSpanInRange(
-  110,
-  135,
-  {
-    className: 'underline',
-  },
-  true,
-);
-spans.forEach(s => underlineAction.mergeTextNode(s));
-underlineAction.removeSpanByKey('3-7');
+// underlineAction.insertSpanInRange(
+//   3,
+//   7,
+//   {
+//     className: 'underline',
+//   },
+// );
+// underlineAction.insertSpanInRange(
+//   110,
+//   135,
+//   {
+//     className: 'underline',
+//   },
+//   true,
+// );
+// spans.forEach(s => underlineAction.mergeTextNode(s));
+// underlineAction.removeSpanByKey('3-7');
 
 // underlineAction.insertSpanInRange(
 //   110,

@@ -5,6 +5,8 @@ import { splitRange } from './splitRange.js';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, SplitResult } from './type.js';
 
+const SPECIAL_NODE = ['SUB', 'SUP']
+
 declare global {
   interface Text {
     _prev: Text;
@@ -97,7 +99,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
     function resolveTextNode(textnode: Text, startOffset: number, endOffset: number, isAttach?: boolean) {
-      if (textnode.parentElement.tagName === 'SUB' || textnode.parentElement.tagName === 'SUP') {
+      if (SPECIAL_NODE.indexOf(textnode.parentElement.tagName) !== -1) {
         return resolveSpecialNode(textnode, startOffset, endOffset, isAttach);
       }
       const len = textnode.textContent.length;
@@ -195,9 +197,14 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
       nativeRange.selectNodeContents(span.childNodes[0]);
       const textSplit = splitRange(nativeRange)
-        .map((r: { getClientRects: () => any; toString: () => string }) => {
+        .map((r: Range) => {
           // 找第一个宽度不为0的矩形
-          const rects = r.getClientRects();
+          let rects;
+          if( SPECIAL_NODE.indexOf(r.commonAncestorContainer.nodeName) !== -1) {
+            rects = span.getClientRects()
+          } else {
+            rects = r.getClientRects();
+          }
           for (let rect of rects) {
             if (rect.width > 0) {
               return { text: r.toString().replace('\n', ''), rect };
