@@ -5,7 +5,7 @@ import { splitRange } from './splitRange.js';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, SplitResult } from './type.js';
 
-const SPECIAL_NODE = ['SUB', 'SUP']
+const SPECIAL_NODE = ['SUB', 'SUP'];
 
 declare global {
   interface Text {
@@ -30,7 +30,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
 
-  const attachMap: Record<number, Attach[]> = {};
+  let attachMap: Record<number, Attach[]> = {};
   function isTextNode(node: Text) {
     // 只有文字节点才需要计算偏移量
     return node.nodeName === '#text' && node.textContent.length;
@@ -151,28 +151,19 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
             curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length);
           }
 
+          const pos = curProcessTextNode._wordoffset + curProcessTextNode.textContent.length;
+          const attachs = attachMap[pos];
+          if (pos < end && attachs) {
+            attachs.forEach((attach: Attach) => {
+              const { node } = attach;
+
+              resolveTextNode(node, 0, node.textContent.length, true);
+            });
+          }
+
           curProcessTextNode = curProcessTextNode._next;
         } while (curProcessTextNode);
       }
-
-      // 处理attachnode
-      Object.keys(attachMap).forEach(pos => {
-        if (Number(pos) >= start && Number(pos) < end) {
-          const attachs = attachMap[pos];
-          attachs.forEach((attach: Attach) => {
-            const { node } = attach;
-            // if (!attach.mockNode) {
-            //   attach.mockNode = createAttachMockNode(node, props, attach);
-            //   node.parentNode.insertBefore(attach.mockNode, node);
-            //   attach.quote = 0;
-            // }
-            // attach.quote++;
-
-            resolveTextNode(node, 0, node.textContent.length, true);
-            // span._isAttach = true;
-          });
-        }
-      });
 
       // spans = [...spans, ...attachMockSpans];
       if (temp) {
@@ -190,7 +181,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     const underlineKey = getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
     const fontScale = getScaleByDom();
-    let splitResults: any;
+    let splitResults: SplitResult[];
 
     function getSpanSplitResult(span: HTMLSpanElement): SplitResult[] {
       const nativeRange = document.createRange();
@@ -200,8 +191,8 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         .map((r: Range) => {
           // 找第一个宽度不为0的矩形
           let rects;
-          if( SPECIAL_NODE.indexOf(r.commonAncestorContainer.nodeName) !== -1) {
-            rects = span.getClientRects()
+          if (SPECIAL_NODE.indexOf(r.commonAncestorContainer.nodeName) !== -1) {
+            rects = span.getClientRects();
           } else {
             rects = r.getClientRects();
           }
@@ -253,6 +244,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     allRanges = Object.keys(allRanges)
       .sort((a, b) => parseFloat(a) - parseFloat(b))
       .reduce((pre, cur) => {
+        allRanges[cur].sort((a: SplitResult, b: SplitResult) => {
+          return a.rect.left - b.rect.left;
+        });
         pre.push(allRanges[cur]);
         return pre;
       }, []);
@@ -432,6 +426,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   }
 
   function computeDomPos() {
+    attachMap = {};
     textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
     if (!dom) return;

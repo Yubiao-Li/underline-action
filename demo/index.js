@@ -39,17 +39,28 @@ let underlineAction = UnderlineAction({
   },
 });
 
-const spans = underlineAction.mockUnderline(
+// const spans = underlineAction.mockUnderline(
+//   0,
+//   5,
+//   {
+//     className: 'underline',
+//   },
+//   document.body
+// );
+console.log(underlineAction.insertSpanInRange(
   0,
-  5,
+  3,
   {
     className: 'underline',
   },
-  document.body
-);
+  true
+));
+
+// underlineAction.removeSpanByKey('0-3')
+
 // underlineAction.insertSpanInRange(
+//   0,
 //   3,
-//   7,
 //   {
 //     className: 'underline',
 //   },
