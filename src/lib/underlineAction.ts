@@ -442,7 +442,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
 
       // 找一下有没有文字节点要带上它一起划线
       !getAttachNode && (getAttachNode = () => false);
-      if (getAttachNode(currentNode, lastTextNode) && isTextNode(currentNode)) {
+      if (isTextNode(currentNode) && getAttachNode(currentNode, lastTextNode)) {
         const attachPosition = lastTextNode._wordoffset + lastTextNode.textContent.length;
         attachMap[attachPosition]
           ? attachMap[attachPosition].push({ node: currentNode, mockNode: null, quote: 0 })
