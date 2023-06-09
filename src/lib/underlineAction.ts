@@ -259,6 +259,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       }
       container.style.position = 'relative';
       const containerRect = container.getClientRects()[0];
+      const containerStyle = getComputedStyle(container);
       const span = document.createElement(tag || 'span');
 
       const parentStyle = getComputedStyle(firstBlockParent);
@@ -269,7 +270,10 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       span.style = `position: absolute;color: transparent;z-index: 10;text-indent: 0;white-space: nowrap;overflow-x: hidden;padding: ${
         parentStyle.padding
       }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
-        rects[0].rect.left - containerRect.left
+        rects[0].rect.left -
+        containerRect.left -
+        parseFloat(containerStyle.marginLeft) -
+        parseFloat(containerStyle.borderLeftWidth)
       }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
         parseFloat(parentStyle.lineHeight) / fontScale
       }px`;
