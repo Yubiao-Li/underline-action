@@ -1,6 +1,6 @@
 {
   "name": "underline-action",
-  "version": "2.3.6-beta.2",
+  "version": "2.3.7",
   "description": "",
   "main": "dist/index.js",
   "scripts": {

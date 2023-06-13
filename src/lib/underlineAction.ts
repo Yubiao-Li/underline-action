@@ -272,7 +272,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
         rects[0].rect.left -
         containerRect.left -
-        parseFloat(containerStyle.marginLeft) -
         parseFloat(containerStyle.borderLeftWidth)
       }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
         parseFloat(parentStyle.lineHeight) / fontScale
