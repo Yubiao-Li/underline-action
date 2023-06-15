@@ -1,18 +1,7 @@
-export function findFirstBlockParent(dom: Node) {
+export function findFirstParent(dom : Node, condition: (dom: Element) => boolean) {
   let parent = dom.parentElement;
   while (parent) {
-    if (getComputedStyle(parent).display === 'block') {
-      break;
-    }
-    parent = parent.parentElement;
-  }
-  return parent;
-}
-
-export function findFirstFlexParent(dom: Node) {
-  let parent = dom.parentElement;
-  while (parent) {
-    if (getComputedStyle(parent).display === 'flex') {
+    if (condition(parent)) {
       break;
     }
     parent = parent.parentElement;

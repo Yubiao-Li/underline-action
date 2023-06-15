@@ -1,4 +1,4 @@
-import { findFirstBlockParent, findFirstFlexParent } from './findParent.js';
+import { findFirstParent } from './findParent.js';
 
 function findBr(dom1: Node, dom2: Node) {
   // 判断两个节点之间是否有br节点
@@ -12,7 +12,9 @@ function findBr(dom1: Node, dom2: Node) {
 
 export function needWrap(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
-  const parentBlockNode = findFirstBlockParent(dom1);
+  const parentBlockNode = findFirstParent(dom1, dom => {
+    return getComputedStyle(dom).display === 'block';
+  });
   // dom1的第一个block父节点不是dom2的父节点，说明需要换行
   if (parentBlockNode && !parentBlockNode.contains(dom2)) {
     return true;
@@ -20,10 +22,20 @@ export function needWrap(dom1: Node, dom2: Node) {
   return findBr(dom1, dom2) || findBr(dom2, dom1);
 }
 
-export function inFlexRowBox(dom1: Node, dom2: Node) {
+export function inSameLine(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
-  const parentFlexNode = findFirstFlexParent(dom1);
+  // 同一个flex里面
+  const parentFlexNode = findFirstParent(dom1, dom => {
+    return getComputedStyle(dom).display === 'flex';
+  });
   if (parentFlexNode && parentFlexNode.contains(dom2) && getComputedStyle(parentFlexNode).flexDirection === 'row') {
+    return true;
+  }
+  // 同一个tr里面
+  const parentTrNode = findFirstParent(dom1, dom => {
+    return dom.tagName === 'TR';
+  });
+  if (parentTrNode && parentTrNode.contains(dom2)) {
     return true;
   }
   return false;
