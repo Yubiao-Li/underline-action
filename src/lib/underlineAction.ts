@@ -1,6 +1,6 @@
 import { getScaleByDom } from './getScaleByDom.js';
-import { needWrap } from './needWrap.js';
-import { findFirstBlockParent } from './findFirstBlockParent.js';
+import { inFlexRowBox, needWrap } from './needWrap.js';
+import { findFirstBlockParent } from './findParent.js';
 import { splitRange } from './splitRange.js';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, SplitResult } from './type.js';
@@ -270,9 +270,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       span.style = `position: absolute;color: transparent;z-index: 10;text-indent: 0;white-space: nowrap;overflow-x: hidden;padding: ${
         parentStyle.padding
       }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
-        rects[0].rect.left -
-        containerRect.left -
-        parseFloat(containerStyle.borderLeftWidth)
+        rects[0].rect.left - containerRect.left - parseFloat(containerStyle.borderLeftWidth)
       }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
         parseFloat(parentStyle.lineHeight) / fontScale
       }px`;
@@ -366,7 +364,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         let curNode = startNode;
         do {
           curNode = curNode._next;
-          if (needWrap(curNode, curNode._prev)) {
+          if (inFlexRowBox(curNode, curNode._prev)) {
+            text += ' ';
+          } else if (needWrap(curNode, curNode._prev)) {
             text += '\n';
           }
           text += curNode.textContent.slice(0, end - curNode._wordoffset);

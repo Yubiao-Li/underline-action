@@ -1,4 +1,4 @@
-import { findFirstBlockParent } from './findFirstBlockParent.js';
+import { findFirstBlockParent, findFirstFlexParent } from './findParent.js';
 
 function findBr(dom1: Node, dom2: Node) {
   // 判断两个节点之间是否有br节点
@@ -18,4 +18,13 @@ export function needWrap(dom1: Node, dom2: Node) {
     return true;
   }
   return findBr(dom1, dom2) || findBr(dom2, dom1);
+}
+
+export function inFlexRowBox(dom1: Node, dom2: Node) {
+  if (!dom1 || !dom2) return false;
+  const parentFlexNode = findFirstFlexParent(dom1);
+  if (parentFlexNode && parentFlexNode.contains(dom2) && getComputedStyle(parentFlexNode).flexDirection === 'row') {
+    return true;
+  }
+  return false;
 }
