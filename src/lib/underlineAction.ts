@@ -4,11 +4,8 @@ import { findFirstParent } from './findParent.js';
 import { splitRange } from './splitRange.js';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, SplitResult } from './type.js';
-<<<<<<< Updated upstream
 import { createHighlightSpan, findParentHighlightSpan, isHighlightSpan } from './core/highlightSpan.js';
-=======
 import { RenderInfo } from './plugins/renderInfo.js';
->>>>>>> Stashed changes
 
 const SPECIAL_NODE = ['SUB', 'SUP'];
 
@@ -35,7 +32,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   }
 
   function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
-<<<<<<< HEAD
     let spans = [];
     function createHighlightSpan(isAttach?: boolean) {
       const span = document.createElement(tag || 'span');
@@ -111,121 +107,46 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       }
       if (endOffset !== len) {
         lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
-=======
-    function resolveTextNode(start: number, end: number) {
-      const range = document.createRange();
-
-      const startTextNode = textNodeArr[start];
-      // 起点尽量在文前，不要跨段
-      let startBookmark: HTMLElement | Text = splitTextNode(startTextNode, start - startTextNode._wordoffset);
-      while (
-        isHighlightSpan(startBookmark.parentElement) &&
-        startBookmark.parentElement.childNodes[0] === startBookmark
-      ) {
-        startBookmark = startBookmark.parentElement;
       }
-      range.setStartBefore(startBookmark);
-      // if(range.startContainer)
-      const endTextNode = textNodeArr[end - 1];
-      // 终点尽量在文后，不要跨段
-      range.setEndAfter(splitTextNode(endTextNode, end - endTextNode._wordoffset, true));
 
-      const span = createHighlightSpan(props);
-      span._wordoffset = start;
-      span.appendChild(range.extractContents());
-      if (range.endContainer.childNodes[range.endOffset]) {
-        range.commonAncestorContainer.insertBefore(span, range.endContainer.childNodes[range.endOffset]);
-      } else {
-        range.commonAncestorContainer.appendChild(span);
-      }
-    }
-
-    function splitTextNode(textnode: Text, offset: number, preferBefore?: boolean) {
-      if (offset === 0) {
-        if (preferBefore) {
-          return textnode._prev;
-        } else {
-          return textnode;
-        }
->>>>>>> wrapunderline
-      }
-      if (textnode.textContent.length === offset) {
-        if (preferBefore) {
-          return textnode;
-        } else {
-          return textnode._next;
-        }
-      }
-      const behindTextNode = textnode.splitText(offset);
-      behindTextNode._prev = textnode;
-      behindTextNode._next = textnode._next;
-      behindTextNode._wordoffset = textnode._wordoffset + offset;
-      textnode._next = behindTextNode;
-
-<<<<<<< HEAD
       const span = createHighlightSpan(isAttach);
       secondNode.parentElement.insertBefore(span, secondNode);
       span.appendChild(secondNode);
 
       return secondNode;
-=======
-      textNodeArr.fill(
-        behindTextNode,
-        behindTextNode._wordoffset,
-        behindTextNode.textContent.length + behindTextNode._wordoffset,
-      );
-
-      if (preferBefore) {
-        return textnode;
-      } else {
-        return behindTextNode;
-      }
->>>>>>> wrapunderline
     }
 
     try {
-      if (end <= start || start < 0 || end >= textNodeArr.length) return;
+      if (end <= start) return;
       const underlineKey = getKeyByRange({ start, end, props });
       props.underlineKey = underlineKey;
-<<<<<<< Updated upstream
-      const startTextNode = textNodeArr[start];
-      const endTextNode = textNodeArr[end];
-
-      if (!needWrap(startTextNode, endTextNode)) {
-=======
       const startTextNode = state.textNodeArr[start];
       const endTextNode = state.textNodeArr[end - 1];
       if (!startTextNode || !endTextNode) return;
       let curProcessTextNode = startTextNode;
       if (startTextNode === endTextNode) {
->>>>>>> Stashed changes
         // 如果是同一段，只需要分解一个节点就好了
-        resolveTextNode(start, end);
+        resolveTextNode(
+          curProcessTextNode,
+          start - curProcessTextNode._wordoffset,
+          end - curProcessTextNode._wordoffset,
+        );
       } else {
-        let curProcessTextNode = startTextNode;
-        let fragStart = start; // 找每一段的开头
         // 如果是不同段，需要一直遍历到最后一个节点，全部分割一遍
-        while (curProcessTextNode._wordoffset < end) {
-          if (end < curProcessTextNode._wordoffset + curProcessTextNode.textContent.length) {
-            resolveTextNode(fragStart, end);
-          } else if (needWrap(curProcessTextNode, curProcessTextNode._next)) {
-            const fragEnd = curProcessTextNode._wordoffset + curProcessTextNode.textContent.length;
-            resolveTextNode(fragStart, fragEnd);
-            fragStart = fragEnd;
-          }
+        do {
           // 分解之后要记得更新一下当前处理的节点指针为插入span的部分dom
-          // if (curProcessTextNode === startTextNode) {
-          //   curProcessTextNode = resolveTextNode(
-          //     curProcessTextNode,
-          //     start - curProcessTextNode._wordoffset,
-          //     curProcessTextNode.textContent.length,
-          //   );
-          // } else if (curProcessTextNode === endTextNode) {
-          //   curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset);
-          //   break;
-          // } else {
-          //   curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length);
-          // }
+          if (curProcessTextNode === startTextNode) {
+            curProcessTextNode = resolveTextNode(
+              curProcessTextNode,
+              start - curProcessTextNode._wordoffset,
+              curProcessTextNode.textContent.length,
+            );
+          } else if (curProcessTextNode === endTextNode) {
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset);
+            break;
+          } else {
+            curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent.length);
+          }
 
           const pos = curProcessTextNode._wordoffset + curProcessTextNode.textContent.length;
           const attachs = attachMap[pos];
@@ -238,7 +159,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
           }
 
           curProcessTextNode = curProcessTextNode._next;
-<<<<<<< HEAD
         } while (curProcessTextNode);
       }
 
@@ -248,31 +168,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       } else {
         spanNodeMap[underlineKey] = spans;
         return underlineKey;
-=======
-        }
->>>>>>> wrapunderline
       }
-
-      // const attachMockSpans = [];
-      // // 处理attachnode
-      // Object.keys(attachMap).forEach(pos => {
-      //   if (Number(pos) >= start && Number(pos) < end) {
-      //     const attachs = attachMap[pos];
-      //     attachs.forEach((attach: Attach) => {
-      //       const { node } = attach;
-      //       if (!attach.mockNode) {
-      //         attach.mockNode = createAttachMockNode(node, props, attach);
-      //         node.parentNode.insertBefore(attach.mockNode, node);
-      //         attach.quote = 0;
-      //       }
-      //       attach.quote++;
-      //       attachMockSpans.push(attach.mockNode);
-      //     });
-      //   }
-      // });
-
-      // spans = [...spans, ...attachMockSpans];
-      return underlineKey;
     } catch (error) {
       console.error(error);
     }
@@ -325,7 +221,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         [],
       );
       // 用完就删掉
-      removeSpanByKey(start, end);
+      removeSpanByKey(underlineKey);
     } else {
       splitResults = spans.reduce((pre: any, cur: HTMLSpanElement) => [...pre, ...getSpanSplitResult(cur)], []);
     }
@@ -482,31 +378,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
   }
 
-<<<<<<< Updated upstream
-<<<<<<< HEAD
-  function getRenderInfoByStartEnd(start: number, end: number) {
-    if (end <= start) return [];
-    const startNode = textNodeArr[start];
-    const endNode = textNodeArr[end - 1];
-    if (!startNode || !endNode) return [];
-    const result = [];
-    // 说明不止由startNode组成text
-    let curNode = startNode;
-    do {
-      let text = startNode.textContent.slice(start - startNode._wordoffset, end - startNode._wordoffset);
-      curNode = curNode._next;
-      if (needWrap(curNode, curNode._prev)) {
-        text += '\n';
-      }
-      result.push({ ...curNode._renderInfo, textContent: text });
-      // text += curNode.textContent.slice(0, end - curNode._wordoffset);
-    } while (curNode !== endNode);
-
-    return result;
-  }
-
-=======
->>>>>>> Stashed changes
   function removeSpanByKey(underlineKey: string | number, mock = false) {
     if (mock) {
       if (spanMockUnderlineMap[underlineKey]) {
@@ -519,12 +390,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
         delete spanNodeMap[underlineKey];
       }
     }
-=======
-  function removeSpanByKey(start: number, end: number) {
-    getSpans(start, end).forEach(s => {
-      mergeTextNode(s);
-    });
->>>>>>> wrapunderline
   }
 
   function getSpanByKey(underlineKey: string | number, mock = false) {
@@ -532,25 +397,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       return spanMockUnderlineMap[underlineKey] || [];
     }
     return spanNodeMap[underlineKey] || [];
-  }
-
-  function getSpans(start: number, end: number) {
-    // if (mock) {
-    //   return spanMockUnderlineMap[underlineKey] || [];
-    // }
-    const startTextNode = textNodeArr[start];
-    const endTextNode = textNodeArr[end - 1];
-    const spans = [];
-    let curProcessTextNode: Text;
-    do {
-      if (!curProcessTextNode) {
-        curProcessTextNode = startTextNode;
-      } else {
-        curProcessTextNode = curProcessTextNode._next;
-      }
-      spans.push(findParentHighlightSpan(curProcessTextNode));
-    } while (curProcessTextNode !== endTextNode);
-    return Array.from(new Set(spans));
   }
 
   // 获取文章总字数
@@ -630,7 +476,6 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     insertSpanInRange,
     getTextByStartEnd,
     removeSpanByKey,
-    getSpans,
     getSpanByKey,
     getTotalCount,
     getNativeRangeByStartAndEnd,
