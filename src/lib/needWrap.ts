@@ -1,5 +1,16 @@
 import { findFirstParent } from './findParent.js';
 
+function findBlock(dom1: Node, dom2: Node) {
+  // dom1的第一个block父节点不是dom2的父节点，说明需要换行
+  const parentBlockNode = findFirstParent(dom1, dom => {
+    return getComputedStyle(dom).display === 'block' || getComputedStyle(dom).display === 'table-row';
+  });
+  if (parentBlockNode && !parentBlockNode.contains(dom2)) {
+    return true;
+  }
+  return false;
+}
+
 function findBr(dom1: Node, dom2: Node) {
   // 判断两个节点之间是否有br节点
   const range = document.createRange();
@@ -12,14 +23,8 @@ function findBr(dom1: Node, dom2: Node) {
 
 export function needWrap(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
-  const parentBlockNode = findFirstParent(dom1, dom => {
-    return getComputedStyle(dom).display === 'block' || getComputedStyle(dom).display === 'table-row';
-  });
-  // dom1的第一个block父节点不是dom2的父节点，说明需要换行
-  if (parentBlockNode && !parentBlockNode.contains(dom2)) {
-    return true;
-  }
-  return findBr(dom1, dom2) || findBr(dom2, dom1);
+
+  return findBlock(dom1, dom2) || findBlock(dom2, dom1) || findBr(dom1, dom2) || findBr(dom2, dom1);
 }
 
 export function inSameLine(dom1: Node, dom2: Node) {

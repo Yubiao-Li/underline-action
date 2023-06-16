@@ -39,6 +39,7 @@ let underlineAction = UnderlineAction({
   },
 });
 
+<<<<<<< HEAD
 // const spans = underlineAction.mockUnderline(
 //   0,
 //   5,
@@ -56,6 +57,8 @@ console.log(underlineAction.insertSpanInRange(
   true
 ));
 
+console.log(underlineAction.getRenderInfoByStartEnd(0, 30))
+console.log(underlineAction.getTextByStartEnd(0, 30))
 // underlineAction.removeSpanByKey('0-3')
 
 // underlineAction.insertSpanInRange(
@@ -65,6 +68,19 @@ console.log(underlineAction.insertSpanInRange(
 //     className: 'underline',
 //   },
 // );
+=======
+// 处理换行，交叉
+underlineAction.insertSpanInRange(2, 3, {
+  className: 'underline',
+});
+// underlineAction.insertSpanInRange(0, 3, {
+//   className: 'underline',
+// });
+// underlineAction.insertSpanInRange(0, 8, {
+//   className: 'underline',
+// });
+console.log(underlineAction.getSpans(0, 3));
+>>>>>>> wrapunderline
 // underlineAction.insertSpanInRange(
 //   110,
 //   135,
@@ -73,8 +89,14 @@ console.log(underlineAction.insertSpanInRange(
 //   },
 //   true,
 // );
+<<<<<<< HEAD
 // spans.forEach(s => underlineAction.mergeTextNode(s));
 // underlineAction.removeSpanByKey('3-7');
+=======
+// underlineAction.removeSpanByKey(0, 2)
+// underlineAction.removeSpanByKey(0, 8)
+// spans.forEach(s => underlineAction.mergeTextNode(s));
+>>>>>>> wrapunderline
 
 // underlineAction.insertSpanInRange(
 //   110,
