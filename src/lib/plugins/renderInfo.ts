@@ -19,17 +19,17 @@ export class RenderInfo {
     }
 
     currentNode._renderInfo = {
-      tagName: currentNode.tagName,
-      nodeName: currentNode.nodeName,
+      type: 'text',
     };
 
     if (this.tableEle?.contains(currentNode)) {
       currentNode._renderInfo.tableRow = this.tableRow;
       currentNode._renderInfo.tableCol = this.tableCol;
+      currentNode._renderInfo.type = 'td';
     }
   }
 
-  static getRenderInfoByStartEnd(start: number, end: number) {
+  static getRenderInfoByStartEnd(start: number, end: number): RenderInfo[] {
     if (end <= start) return [];
     const startNode = RenderInfo.state.textNodeArr[start];
     const endNode = RenderInfo.state.textNodeArr[end - 1];
@@ -44,11 +44,37 @@ export class RenderInfo {
         curNode = curNode._next;
       }
       let text = curNode.textContent.slice(start - startNode._wordoffset, end - startNode._wordoffset);
-      if (needWrap(curNode, curNode._prev) || curNode === startNode) {
-        result.push([]);
+      if (curNode._renderInfo.type === 'td' && curNode._prev._renderInfo.type === 'td') {
+        // 表格元素，如果换行，在同一个格子里面的行为和不同格子的含义不同
+        if (needWrap(curNode, curNode._prev)) {
+          if (
+            curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
+            curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
+          ) {
+            result[result.length - 1].textContent += `\n${text}`;
+            continue;
+          } else {
+            result.push({
+              type: 'table-newline',
+            });
+          }
+        } else {
+          if (
+            curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
+            curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
+          ) {
+            result[result.length - 1].textContent += text;
+            continue;
+          }
+        }
+      } else {
+        if (needWrap(curNode, curNode._prev)) {
+          result.push({
+            type: 'newline',
+          });
+        }
       }
-      result[result.length - 1].push({ ...curNode._renderInfo, textContent: text });
-      // text += curNode.textContent.slice(0, end - curNode._wordoffset);
+      result.push({ ...curNode._renderInfo, textContent: text });
     }
     return result;
   }

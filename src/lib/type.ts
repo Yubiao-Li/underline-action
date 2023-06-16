@@ -11,6 +11,12 @@ export interface Attach {
   node: Text;
 }
 
+export interface RenderInfo {
+  type: 'text' | 'td' | 'newline' | 'table-newline';
+  tableCol?: number;
+  tableRow?: number;
+}
+
 declare global {
   interface Text {
     _prev: Text;
@@ -19,11 +25,6 @@ declare global {
   }
   interface Node {
     _isAttach: boolean;
-    _renderInfo: {
-      tagName?: string;
-      nodeName?: string;
-      tableCol?: number;
-      tableRow?: number;
-    };
+    _renderInfo: RenderInfo;
   }
 }

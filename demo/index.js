@@ -47,18 +47,48 @@ let underlineAction = UnderlineAction({
 //   },
 //   document.body
 // );
-console.log(underlineAction.insertSpanInRange(
-  0,
-  3,
-  {
-    className: 'underline',
-  },
-  true
-));
+console.log(
+  underlineAction.insertSpanInRange(
+    0,
+    3,
+    {
+      className: 'underline',
+    },
+    true,
+  ),
+);
+console.log(underlineAction.getTextByStartEnd(0, 30));
 
-console.log(underlineAction.getRenderInfoByStartEnd(0, 30))
-console.log(underlineAction.getTextByStartEnd(0, 30))
-// underlineAction.removeSpanByKey('0-3')
+const renderInfos = underlineAction.getRenderInfoByStartEnd(0, 30);
+console.log(renderInfos);
+let html = '';
+let inTable = false;
+renderInfos.forEach(r => {
+  switch (r.type) {
+    case 'text':
+      html += r.textContent;
+      break;
+    case 'newline':
+      if (inTable) {
+        inTable = false;
+        html += '</table>';
+      }
+      html += '\n';
+      break;
+    case 'td':
+      if (!inTable) {
+        inTable = true;
+        html += '<table><tr>';
+      }
+      html += `<td>${r.textContent}</td>`;
+      break;
+    case 'table-newline':
+      html += '</tr>';
+      break;
+  }
+});
+
+render.innerHTML = html;
 
 // underlineAction.insertSpanInRange(
 //   0,
