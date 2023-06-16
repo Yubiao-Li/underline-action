@@ -13,7 +13,7 @@ function findBr(dom1: Node, dom2: Node) {
 export function needWrap(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
   const parentBlockNode = findFirstParent(dom1, dom => {
-    return getComputedStyle(dom).display === 'block';
+    return getComputedStyle(dom).display === 'block' || getComputedStyle(dom).display === 'table-row';
   });
   // dom1的第一个block父节点不是dom2的父节点，说明需要换行
   if (parentBlockNode && !parentBlockNode.contains(dom2)) {

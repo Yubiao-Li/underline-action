@@ -206,7 +206,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       textSplit.forEach((item: { firstBlockParent: any; style: string; rect: { right: number; left: number } }) => {
         const computeStyle = getComputedStyle(span);
         item.firstBlockParent = findFirstParent(span, dom => {
-          return getComputedStyle(dom).display === 'block'
+          return getComputedStyle(dom).display === 'block';
         });
 
         item.style = `text-align-last: justify; overflow-x: hidden; font-size:${
@@ -381,6 +381,27 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     }
   }
 
+  function getRenderInfoByStartEnd(start: number, end: number) {
+    if (end <= start) return [];
+    const startNode = textNodeArr[start];
+    const endNode = textNodeArr[end - 1];
+    if (!startNode || !endNode) return [];
+    const result = [];
+    // 说明不止由startNode组成text
+    let curNode = startNode;
+    do {
+      let text = startNode.textContent.slice(start - startNode._wordoffset, end - startNode._wordoffset);
+      curNode = curNode._next;
+      if (needWrap(curNode, curNode._prev)) {
+        text += '\n';
+      }
+      result.push({ ...curNode._renderInfo, textContent: text });
+      // text += curNode.textContent.slice(0, end - curNode._wordoffset);
+    } while (curNode !== endNode);
+
+    return result;
+  }
+
   function removeSpanByKey(underlineKey: string | number, mock = false) {
     if (mock) {
       if (spanMockUnderlineMap[underlineKey]) {
@@ -442,8 +463,27 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     });
     let currentNode = treeWalker.currentNode as any;
 
+    let tableCol = 0,
+      tableRow = 0;
+
     while (currentNode) {
       currentNode._wordoffset = offset;
+
+      if (currentNode.tagName === 'TABLE') {
+        tableCol = tableRow = 0;
+      } else if (currentNode.tagName === 'TR') {
+        tableRow++;
+        tableCol = 0;
+      } else if (currentNode.tagName === 'TD') {
+        tableCol++;
+      }
+
+      currentNode._renderInfo = {
+        tagName: currentNode.tagName,
+        tableRow,
+        tableCol,
+        textContent: currentNode.textContent,
+      };
 
       // 找一下有没有文字节点要带上它一起划线
       !getAttachNode && (getAttachNode = () => false);
@@ -477,6 +517,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   return {
     insertSpanInRange,
     getTextByStartEnd,
+    getRenderInfoByStartEnd,
     removeSpanByKey,
     getSpanByKey,
     getTotalCount,
