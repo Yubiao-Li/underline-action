@@ -15,6 +15,8 @@ export interface RenderInfo {
   type: 'text' | 'td' | 'newline' | 'table-newline';
   tableCol?: number;
   tableRow?: number;
+  totalRow?: number;
+  totalCol?: number;
 }
 
 declare global {

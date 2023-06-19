@@ -5,12 +5,18 @@ export class RenderInfo {
   static tableCol: number;
   static tableRow: number;
   static tableEle: Element;
+  static totalRow: number;
+  static totalCol: number;
   static exportFuncs: string[] = ['getRenderInfoByStartEnd'];
   static state: any;
   static init(currentNode: HTMLElement) {
     if (currentNode.tagName === 'TABLE') {
       this.tableCol = this.tableRow = -1;
       this.tableEle = currentNode;
+      this.totalRow = this.tableEle.getElementsByTagName('tr').length;
+      this.totalCol =
+        (this.tableEle.getElementsByTagName('td').length + this.tableEle.getElementsByTagName('th').length) /
+        this.totalRow;
     } else if (currentNode.tagName === 'TR') {
       this.tableRow++;
       this.tableCol = -1;
@@ -24,7 +30,9 @@ export class RenderInfo {
 
     if (this.tableEle?.contains(currentNode)) {
       currentNode._renderInfo.tableRow = this.tableRow;
+      currentNode._renderInfo.totalRow = this.totalRow;
       currentNode._renderInfo.tableCol = this.tableCol;
+      currentNode._renderInfo.totalCol = this.totalCol;
       currentNode._renderInfo.type = 'td';
     }
   }
