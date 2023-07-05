@@ -1,6 +1,10 @@
+import { RenderInfo } from "../type";
+
 declare global {
   interface HTMLElement {
     _isHighlightSpan: boolean;
+    _isAttach: boolean;
+    _renderInfo: RenderInfo;
   }
 }
 

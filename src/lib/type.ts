@@ -13,10 +13,12 @@ export interface Attach {
 
 export interface RenderInfo {
   type: 'text' | 'td' | 'newline' | 'table-newline';
+  colspan?: string;
   tableCol?: number;
   tableRow?: number;
   totalRow?: number;
   totalCol?: number;
+  textContent?: string;
 }
 
 declare global {
@@ -24,9 +26,8 @@ declare global {
     _prev: Text;
     _next: Text;
     _wordoffset: number;
-  }
-  interface Node {
-    _isAttach: boolean;
     _renderInfo: RenderInfo;
   }
+  // interface Node {
+  // }
 }

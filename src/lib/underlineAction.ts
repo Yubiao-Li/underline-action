@@ -1,11 +1,10 @@
-import { getScaleByDom } from './getScaleByDom.js';
-import { inSameLine, needWrap } from './needWrap.js';
-import { findFirstParent } from './findParent.js';
-import { splitRange } from './splitRange.js';
+import { getScaleByDom } from './getScaleByDom';
+import { inSameLine, needWrap } from './needWrap';
+import { findFirstParent } from './findParent';
+import { splitRange } from './splitRange';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
-import { Attach, SplitResult } from './type.js';
-import { createHighlightSpan, findParentHighlightSpan, isHighlightSpan } from './core/highlightSpan.js';
-import { RenderInfo } from './plugins/renderInfo.js';
+import { Attach, SplitResult } from './type';
+import { RenderInfoPlugin } from './plugins/renderInfo';
 
 const SPECIAL_NODE = ['SUB', 'SUP'];
 
@@ -15,9 +14,9 @@ function defaultGetKeyByRange({ start, end }) {
 
 export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, getAttachNode }) {
   !getKeyByRange && (getKeyByRange = defaultGetKeyByRange);
-  // 用来按顺序保存text节点方便后面遍历
-  let plugins = [RenderInfo];
+  let plugins = [RenderInfoPlugin];
   const state = {
+    // 用来按顺序保存text节点方便后面遍历
     textNodeArr: []
   }
   plugins.forEach(p => (p.state = state));
@@ -322,7 +321,7 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
     return underlineKey;
   }
 
-  function mergeTextNode(span: Element) {
+  function mergeTextNode(span: HTMLElement) {
     // if (isAttachMockNode(span)) {
     //   return removeAttachMockNode(span);
     // }

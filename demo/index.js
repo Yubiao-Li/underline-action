@@ -1,4 +1,4 @@
-import { UnderlineAction } from '../dist/lib/underlineAction.js';
+import { UnderlineAction, render } from '../src/index.js';
 
 export function getKeyByRange(range) {
   return `${range.start}-${range.end}`;
@@ -47,63 +47,57 @@ let underlineAction = UnderlineAction({
 //   },
 //   document.body
 // );
-console.log(
-  underlineAction.insertSpanInRange(
-    0,
-    4,
-    {
-      className: 'underline',
-    },
-    true,
-  ),
-);
-const prerenderInfos = underlineAction.getRenderInfoByStartEnd(0, 10).map(v => ({ ...v, color: 'red' }));
-const nextrenderInfos = underlineAction.getRenderInfoByStartEnd(10, 20).map(v => ({ ...v, color: 'blue' }));
-const renderInfos = [...prerenderInfos, ...nextrenderInfos];
-console.log(renderInfos);
-let html = '';
-let inTable = false;
-let table;
-renderInfos.forEach((r, index) => {
-  switch (r.type) {
-    case 'text':
-      html += r.textContent;
-      break;
-    case 'newline':
-      if (inTable) {
-        inTable = false;
-        html += table.outerHTML;
-        table = null;
-      }
-      html += '\n';
-      break;
-    case 'td':
-      if (!inTable) {
-        inTable = true;
-        table = document.createElement('table');
-        for (let i = 0; i < r.totalRow; i++) {
-          const tr = document.createElement('tr');
-          for (let j = 0; j < r.totalCol; j++) {
-            const td = document.createElement('td');
-            td.style.whiteSpace = 'pre-wrap';
-            tr.appendChild(td);
-          }
-          table.appendChild(tr);
-        }
-      }
-      const target = table.getElementsByTagName('tr')[r.tableRow].getElementsByTagName('td')[r.tableCol];
-      target.style.color = r.color;
-      target.innerHTML = r.textContent;
-      break;
-    case 'table-newline':
-      break;
-  }
-  if (index === renderInfos.length - 1 && table) {
-    html += table.outerHTML;
-  }
-});
+// console.log(
+//   underlineAction.insertSpanInRange(
+//     0,
+//     4,
+//     {
+//       className: 'underline',
+//     },
+//     true,
+//   ),
+// );
+const renderOptions = {
+  patchProp(el, key, prevValue, nextValue) {
+    switch (key) {
+      case 'textContent':
+      case 'style':
+        el[key] = nextValue;
+        break;
+      case 'colspan':
+        el.setAttribute(key, nextValue);
+        break;
+      default:
+        break;
+    }
+  },
+  remove(el) {
+    el.remove();
+  },
+  createElement(type) {
+    return document.createElement(type);
+  },
+  createText(text) {
+    return document.createTextNode(text);
+  },
+  insert(node, parent, anchor) {
+    if (anchor) {
+      parent.insertBefore(node, anchor);
+    } else {
+      parent.appendChild(node);
+    }
+  },
+};
+const prerenderInfos = underlineAction
+  .getRenderInfoByStartEnd(0, 10)
+  .map(v => ({ ...v, style: 'color:red; white-space:pre-wrap;' }));
 
-render.innerHTML = html;
+const nextrenderInfos = underlineAction
+  .getRenderInfoByStartEnd(10, 20)
+  .map(v => ({ ...v, style: 'color:blue;white-space:pre-wrap;' }));
+const renderInfos = [...prerenderInfos, ...nextrenderInfos];
+render(nextrenderInfos, renderdom, renderOptions);
+render(renderInfos, renderdom, renderOptions);
 
 // underlineAction.insertSpanInRange(
 //   0,

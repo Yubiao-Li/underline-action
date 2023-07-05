@@ -1,5 +1,7 @@
-export * from './lib/splitRange.js';
-export * from './lib/underlineAction.js';
-export * from './lib/needWrap.js';
-export * from './lib/findParent.js';
+export * from './lib/splitRange';
+export * from './lib/underlineAction';
+export * from './lib/needWrap';
+export * from './lib/findParent';
+export * from './lib/render';
+export * from './lib/type';
 // import './index.css';
