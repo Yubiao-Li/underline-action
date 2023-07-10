@@ -32,6 +32,9 @@ const action = UnderlineAction({
       return true;
     }
   },
+  getRenderInfo(node) {   // 获取节点的用于渲染的信息，会在render方法的patchProps带上
+    return {};
+  }
 });
 
 // 划线
@@ -55,4 +58,40 @@ const spans = action.getSpanByKey(key)
 
 // 获取dom总字数
 const num = action.getTotalCount()
+
+// 获取用于渲染元信息
+const renderInfo = action.getRenderInfoByStartEnd(start, end)
+
+// 使用元信息渲染，参考vue调和器
+render(renderInfos, renderdom, {
+  patchProp(el, key, prevValue, nextValue) {
+    switch (key) {
+      case 'textContent':
+      case 'style':
+        el[key] = nextValue;
+        break;
+      case 'type':
+        break;
+      default:
+        el.setAttribute(key, nextValue);
+        break;
+    }
+  },
+  remove(el) {
+    el.remove();
+  },
+  createElement(type) {
+    return document.createElement(type);
+  },
+  createText(text) {
+    return document.createTextNode(text);
+  },
+  insert(node, parent, anchor) {
+    if (anchor) {
+      parent.insertBefore(node, anchor);
+    } else {
+      parent.appendChild(node);
+    }
+  },
+});
 ```

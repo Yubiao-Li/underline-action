@@ -11,8 +11,8 @@ export interface Attach {
   node: Text;
 }
 
-export interface RenderInfo {
-  type: 'text' | 'td' | 'newline' | 'table-newline';
+export interface RenderInfo extends Record<string, string | number> {
+  type: string;
   colspan?: string;
   tableCol?: number;
   tableRow?: number;
@@ -30,4 +30,13 @@ declare global {
   }
   // interface Node {
   // }
+}
+
+export interface Options {
+  getKeyByRange?(range: { start: number; end: number; props?: any }): string;
+  tag: string;
+  selector: string | HTMLElement;
+  needFilterNode?: (node: Node) => number;
+  getAttachNode?(cur: HTMLElement | Text, lastTextNode: Text): boolean;
+  getRenderInfo?(cur: HTMLElement): object;
 }

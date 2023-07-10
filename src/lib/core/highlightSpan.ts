@@ -5,6 +5,7 @@ declare global {
     _isHighlightSpan: boolean;
     _isAttach: boolean;
     _renderInfo: RenderInfo;
+    underlineKey: string;
   }
 }
 

@@ -35,7 +35,15 @@ let underlineAction = UnderlineAction({
   getAttachNode(node) {
     if (node.parentElement.tagName === 'SUP') {
       return true;
+    } else if (node.tagName === 'IMG') {
+      return true;
     }
+  },
+  getRenderInfo(node) {
+    if (node.tagName === 'IMG') {
+      return { src: node.src };
+    }
+    return {};
   },
 });
 
@@ -47,16 +55,16 @@ let underlineAction = UnderlineAction({
 //   },
 //   document.body
 // );
-// console.log(
-//   underlineAction.insertSpanInRange(
-//     0,
-//     4,
-//     {
-//       className: 'underline',
-//     },
-//     true,
-//   ),
-// );
+console.log(
+  underlineAction.insertSpanInRange(
+    100,
+    150,
+    {
+      className: 'underline',
+    },
+    true,
+  ),
+);
 const renderOptions = {
   patchProp(el, key, prevValue, nextValue) {
     switch (key) {
@@ -64,10 +72,10 @@ const renderOptions = {
       case 'style':
         el[key] = nextValue;
         break;
-      case 'colspan':
-        el.setAttribute(key, nextValue);
+      case 'type':
         break;
       default:
+        el.setAttribute(key, nextValue);
         break;
     }
   },
@@ -95,8 +103,10 @@ const prerenderInfos = underlineAction
 const nextrenderInfos = underlineAction
   .getRenderInfoByStartEnd(10, 20)
   .map(v => ({ ...v, style: 'color:blue;white-space:pre-wrap;' }));
-const renderInfos = [...prerenderInfos, ...nextrenderInfos];
-render(nextrenderInfos, renderdom, renderOptions);
+// const renderInfos = [...prerenderInfos, ...nextrenderInfos];
+const renderInfos = underlineAction.getRenderInfoByStartEnd(100, 150);
+console.log(renderInfos);
+// render(nextrenderInfos, renderdom, renderOptions);
 render(renderInfos, renderdom, renderOptions);
 
 // underlineAction.insertSpanInRange(

@@ -42,6 +42,10 @@ function getRenderVNode(renderInfos: RenderInfo[]) {
         } else {
           results[results.length - 1].children[element.tableRow].children[element.tableCol].props = element;
         }
+        break;
+      default:
+        results.push(h(element.type, element))
+        break;
     }
   });
   return h('div', results);
