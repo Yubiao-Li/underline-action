@@ -17,8 +17,8 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
   let plugins = [RenderInfoPlugin];
   const state = {
     // 用来按顺序保存text节点方便后面遍历
-    textNodeArr: []
-  }
+    textNodeArr: [],
+  };
   plugins.forEach(p => (p.state = state));
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
@@ -51,6 +51,9 @@ export function UnderlineAction({ getKeyByRange, tag, selector, needFilterNode, 
       const behindTextNode = textnode.splitText(offset);
       behindTextNode._prev = textnode;
       behindTextNode._next = textnode._next;
+      if (behindTextNode._next) {
+        behindTextNode._next._prev = behindTextNode;
+      }
       behindTextNode._wordoffset = textnode._wordoffset + offset;
       behindTextNode._renderInfo = textnode._renderInfo;
 
