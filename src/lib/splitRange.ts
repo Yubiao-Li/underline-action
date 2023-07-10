@@ -1,5 +1,10 @@
 // 将一个跨行的 range 切割为多个不跨行的 range，用bottom来比较，因为有的文字在同一行也会突出来
-export function splitRange(nativeRange: Range) {
+export function splitRange(nativeRange: {
+  startContainer: Text,
+  startOffset: number,
+  endContainer: Text,
+  endOffset: number
+}) {
   const { startContainer, startOffset, endContainer, endOffset } = nativeRange;
   const range = document.createRange();
   const rowBottom = getCharBottom(startContainer as Text, startOffset);
@@ -18,7 +23,7 @@ export function splitRange(nativeRange: Range) {
       startOffset: findNextNode ? 0 : last.offset + 1,
       endContainer,
       endOffset,
-    } as Range);
+    });
     return [range, ...others];
   }
 }
