@@ -425,6 +425,10 @@ export function UnderlineAction(opt: Options) {
     };
   }
 
+  function getOffset(node: Text, offset: number) {
+    return node._wordoffset + offset;
+  }
+
   function computeDomPos() {
     plugins.forEach(p => p.init(state));
 
@@ -476,6 +480,7 @@ export function UnderlineAction(opt: Options) {
     computeDomPos,
     mergeTextNode,
     getNodeAndOffset,
+    getOffset,
   };
   plugins.forEach(p => {
     p.exportFuncs.forEach(f => (exportFuncs[f] = p[f]));
