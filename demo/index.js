@@ -106,8 +106,8 @@ const nextrenderInfos = underlineAction
 // const renderInfos = [...prerenderInfos, ...nextrenderInfos];
 const renderInfos = underlineAction.getRenderInfoByStartEnd(100, 150);
 console.log(renderInfos);
-// render(nextrenderInfos, renderdom, renderOptions);
 render(renderInfos, renderdom, renderOptions);
+render(nextrenderInfos, renderdom, renderOptions);
 
 // underlineAction.insertSpanInRange(
 //   0,

@@ -1,6 +1,7 @@
 import { h } from "@vue/runtime-core";
 import { RendererOptions, createRenderer } from "./reconciler";
 import { RenderInfo } from "./type";
+import { Fragment } from "./reconciler/vnode";
 
 function getRenderVNode(renderInfos: RenderInfo[]) {
   const results: Array<any> = [];
@@ -48,7 +49,7 @@ function getRenderVNode(renderInfos: RenderInfo[]) {
         break;
     }
   });
-  return h('div', results);
+  return h(Fragment, results);
 }
 
 export function render(renderInfos: RenderInfo[], container: Element, options: RendererOptions) {
