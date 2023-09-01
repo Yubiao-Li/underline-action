@@ -361,10 +361,10 @@ export function UnderlineAction(opt: Options) {
         let curNode = startNode;
         do {
           curNode = curNode._next;
-          if (inSameLine(curNode, curNode._prev)) {
-            text += ' ';
-          } else if (needWrap(curNode, curNode._prev)) {
+          if (needWrap(curNode, curNode._prev)) {
             text += '\n';
+          } else if (inSameLine(curNode, curNode._prev)) {
+            text += ' ';
           }
           text += curNode.textContent.slice(0, end - curNode._wordoffset);
         } while (curNode !== endNode);

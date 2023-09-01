@@ -1,4 +1,4 @@
-export function findFirstParent(dom : Node, condition: (dom: Element) => boolean) {
+export function findFirstParent(dom: Node, condition: (dom: Element) => boolean) {
   let parent = dom.parentElement;
   while (parent) {
     if (condition(parent)) {
