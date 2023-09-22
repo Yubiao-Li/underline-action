@@ -269,7 +269,7 @@ export function UnderlineAction(opt: Options) {
           rects[0].rect.left - containerRect.left - parseFloat(containerStyle.borderLeftWidth)
         }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
           parseFloat(parentStyle.lineHeight) / fontScale
-        }px`,
+        }px;text-align-last: justify; `,
       );
 
       container.appendChild(span);
