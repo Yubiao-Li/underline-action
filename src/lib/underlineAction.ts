@@ -265,9 +265,9 @@ export function UnderlineAction(opt: Options) {
       }, rects[0].rect.top);
       span.setAttribute(
         'style',
-        `position: absolute;color: transparent;z-index: 10;text-indent: 0;white-space: nowrap;overflow-x: hidden;padding: ${
-          parentStyle.padding
-        }; padding-left:0;padding-right:0; top:${top - containerRect.top}px; left:${
+        `position: absolute;color: transparent;z-index: 10;text-indent: 0;white-space: nowrap;overflow-x: hidden;top:${
+          top - containerRect.top
+        }px; left:${
           rects[0].rect.left - containerRect.left - parseFloat(containerStyle.borderLeftWidth)
         }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
           parseFloat(parentStyle.lineHeight) / fontScale
@@ -277,6 +277,7 @@ export function UnderlineAction(opt: Options) {
       mockContainer.appendChild(span);
 
       let maxTopOffset = -999;
+      let maxBottomOffset = -999;
       rects.forEach((r, index) => {
         // inline-flex会影响下划线粗细，所以要再套一层
         // const flexS = document.createElement('span');
@@ -292,15 +293,21 @@ export function UnderlineAction(opt: Options) {
         span.appendChild(innerS);
         // 先置为inline，用来算块级元素包含行内元素的高度差，算完后要用inline-flex保持宽度，并且保持位置
         innerS.style.display = 'inline';
-        maxTopOffset = Math.max(maxTopOffset, span.getBoundingClientRect().top - innerS.getBoundingClientRect().top);
+        const topOffset = span.getBoundingClientRect().top - innerS.getBoundingClientRect().top;
+        maxTopOffset = Math.max(maxTopOffset, topOffset);
+        const bottomOffset = innerS.getBoundingClientRect().bottom - span.getBoundingClientRect().bottom
+        maxBottomOffset = Math.max(maxBottomOffset, bottomOffset)
         innerS.style.display = 'inline-flex';
       });
       // 作者发现块级元素包含行内元素会导致块级元素和行内元素的top不同，而这个偏移值是我们模拟行内元素所需要的
-      span.style.marginTop = `${maxTopOffset}px`;
+      span.style.marginTop = `${maxTopOffset > 0 ? 0 : maxTopOffset}px`;
+      
+      // 外层p可能太矮了会截断span，用padding撑起
+      span.style.padding = `${maxTopOffset > 0 ? maxTopOffset : 0}px 0 ${maxBottomOffset > 0 ? maxBottomOffset : 0}px 0`;
       let containerWidth = parseFloat(getComputedStyle(span).width);
       span.style.width = `${containerWidth}px`;
       // 算完宽度后，要取消innerS的display，让他做个正常的inline
-      span.childNodes.forEach((inner: HTMLElement)=>inner.style.display = '');
+      span.childNodes.forEach((inner: HTMLElement) => (inner.style.display = ''));
       span.className = 'underline';
       if (!temp) {
         if (spanMockUnderlineMap[underlineKey]) {

@@ -132,6 +132,6 @@ render(nextrenderInfos, renderdom, renderOptions);
 //   },
 //   document.body,
 // );
-// underlineAction.mockUnderline(401, 550, {}, document.body);
+underlineAction.mockUnderline(40, 50, {}, document.body);
 // underlineAction.mockUnderline(402, 550, {}, document.body);
 // underlineAction.mockUnderline(403, 550, {}, document.body);
