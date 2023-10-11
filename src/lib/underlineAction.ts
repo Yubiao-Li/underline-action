@@ -248,12 +248,14 @@ export function UnderlineAction(opt: Options) {
     function createMockSpan(rects: Array<SplitResult>) {
       // 同一行的元素他们的第一个块级父元素应该都是一样的
       const firstBlockParent = rects[0].firstBlockParent;
-      if (!container) {
-        container = firstBlockParent;
+      let mockContainer = container;
+      if (!mockContainer) {
+        // 但是每一行的父元素有可能不一样
+        mockContainer = firstBlockParent;
       }
-      container.style.position = 'relative';
-      const containerRect = container.getClientRects()[0];
-      const containerStyle = getComputedStyle(container);
+      mockContainer.style.position = 'relative';
+      const containerRect = mockContainer.getClientRects()[0];
+      const containerStyle = getComputedStyle(mockContainer);
       const span = document.createElement(tag || 'span');
 
       const parentStyle = getComputedStyle(firstBlockParent);
@@ -272,7 +274,7 @@ export function UnderlineAction(opt: Options) {
         }px;text-align-last: justify; `,
       );
 
-      container.appendChild(span);
+      mockContainer.appendChild(span);
 
       let maxTopOffset = -999;
       rects.forEach((r, index) => {
