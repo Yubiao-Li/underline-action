@@ -30,6 +30,13 @@ declare global {
   }
   // interface Node {
   // }
+
+  interface HTMLElement {
+    _isHighlightSpan: boolean;
+    _isAttach?: boolean;
+    _renderInfo: RenderInfo;
+    underlineKey: string;
+  }
 }
 
 export interface Options {

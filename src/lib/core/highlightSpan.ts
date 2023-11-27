@@ -1,14 +1,3 @@
-import { RenderInfo } from "../type";
-
-declare global {
-  interface HTMLElement {
-    _isHighlightSpan: boolean;
-    _isAttach: boolean;
-    _renderInfo: RenderInfo;
-    underlineKey: string;
-  }
-}
-
 export function createHighlightSpan(props: any, tag?: string) {
   const span = document.createElement(tag || 'span');
   span._isHighlightSpan = true;
@@ -23,8 +12,8 @@ export function isHighlightSpan(dom: HTMLElement) {
 }
 
 export function findParentHighlightSpan(dom: Text) {
-  let ele = dom.parentElement;
+  let ele = dom.parentElement!;
   do {
     if (isHighlightSpan(ele)) return ele;
-  } while ((ele = ele.parentElement));
+  } while ((ele = ele.parentElement!));
 }
