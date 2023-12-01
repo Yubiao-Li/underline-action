@@ -31,9 +31,8 @@ export class AttachPlugin extends BasePlugin {
     if (pos < end && attachs) {
       attachs.forEach((attach: Attach) => {
         const { node } = attach;
-        if (isTextNode(node)) {
-          resolveTextNode(node, 0, node.textContent.length, true);
-        }
+        curProcessTextNode.parentElement.appendChild(node);
+        // resolveTextNode(node, 0, node.textContent.length, true);
       });
     }
   }

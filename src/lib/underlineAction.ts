@@ -191,11 +191,7 @@ export function UnderlineAction(opt: Options) {
         .map((r: Range) => {
           // 找第一个宽度不为0的矩形
           let rects;
-          if (SPECIAL_NODE.indexOf(r.commonAncestorContainer.nodeName) !== -1) {
-            rects = span.getClientRects();
-          } else {
-            rects = r.getClientRects();
-          }
+          rects = r.getClientRects();
           for (let rect of rects) {
             if (rect.width > 0) {
               return { text: r.toString().replace('\n', ''), rect };
@@ -468,6 +464,7 @@ export function UnderlineAction(opt: Options) {
       acceptNode: needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
     });
     let currentNode = treeWalker.currentNode as any;
+    let pluginFilterNode: any; // 一个节点被过滤了，那它的子节点也不能成为正文了
 
     while (currentNode) {
       currentNode._wordoffset = offset;
@@ -476,18 +473,22 @@ export function UnderlineAction(opt: Options) {
         return pre && cur.process(currentNode, opt, lastTextNode!);
       }, true);
 
-      if (isTextNode(currentNode) && isMainText) {
-        if (lastTextNode) {
-          // 做个链表
-          lastTextNode._next = currentNode;
-          currentNode._prev = lastTextNode;
+      if (isMainText) {
+        if (isTextNode(currentNode) && !pluginFilterNode?.contains(currentNode)) {
+          if (lastTextNode) {
+            // 做个链表
+            lastTextNode._next = currentNode;
+            currentNode._prev = lastTextNode;
+          }
+          const wordLen = currentNode.textContent.length;
+          const newOffset = offset + wordLen;
+          state.textNodeArr.length = newOffset;
+          state.textNodeArr.fill(currentNode, offset, newOffset);
+          offset = newOffset;
+          lastTextNode = currentNode;
         }
-        const wordLen = currentNode.textContent.length;
-        const newOffset = offset + wordLen;
-        state.textNodeArr.length = newOffset;
-        state.textNodeArr.fill(currentNode, offset, newOffset);
-        offset = newOffset;
-        lastTextNode = currentNode;
+      } else {
+        pluginFilterNode = currentNode;
       }
       currentNode = treeWalker.nextNode();
     }

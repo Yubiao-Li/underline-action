@@ -33,7 +33,7 @@ let underlineAction = UnderlineAction({
   getKeyByRange,
   needFilterNode,
   getAttachNode(node) {
-    if (node.parentElement.tagName === 'SUP') {
+    if (node.tagName === 'SUP') {
       return true;
     } else if (node.tagName === 'IMG') {
       return true;
@@ -47,14 +47,22 @@ let underlineAction = UnderlineAction({
   },
 });
 
-// const spans = underlineAction.mockUnderline(
+// const key = underlineAction.mockUnderline(
 //   0,
 //   5,
 //   {
 //     className: 'underline',
 //   },
-//   document.body
 // );
+// underlineAction.insertSpanInRange(
+//   1,
+//   6,
+//   {
+//     className: 'underline',
+//   },
+// );
+// underlineAction.removeSpanByKey(key)
+// underlineAction.removeSpanByKey('1-6')
 console.log(
   underlineAction.insertSpanInRange(
     100,
@@ -132,6 +140,6 @@ render(nextrenderInfos, renderdom, renderOptions);
 //   },
 //   document.body,
 // );
-underlineAction.mockUnderline(40, 50, {}, document.body);
+// underlineAction.mockUnderline(40, 50, {}, document.body);
 // underlineAction.mockUnderline(402, 550, {}, document.body);
 // underlineAction.mockUnderline(403, 550, {}, document.body);
