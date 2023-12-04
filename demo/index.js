@@ -48,8 +48,8 @@ let underlineAction = UnderlineAction({
 });
 
 const key = underlineAction.mockUnderline(
-  0,
-  5,
+  280,
+  300,
   {
     className: 'underline',
   },
