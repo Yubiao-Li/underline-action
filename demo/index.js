@@ -47,13 +47,13 @@ let underlineAction = UnderlineAction({
   },
 });
 
-// const key = underlineAction.mockUnderline(
-//   0,
-//   5,
-//   {
-//     className: 'underline',
-//   },
-// );
+const key = underlineAction.mockUnderline(
+  0,
+  5,
+  {
+    className: 'underline',
+  },
+);
 // underlineAction.insertSpanInRange(
 //   1,
 //   6,

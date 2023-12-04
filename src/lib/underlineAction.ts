@@ -1,7 +1,7 @@
 import { getScaleByDom } from './getScaleByDom';
 import { inSameLine, needWrap } from './needWrap';
 import { findFirstParent } from './findParent';
-import { splitRange } from './splitRange';
+import { findAllLines, splitRange } from './splitRange';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
 import { Attach, Options, SplitResult } from './type';
 import { RenderInfoPlugin } from './plugins/renderInfo';
@@ -184,33 +184,42 @@ export function UnderlineAction(opt: Options) {
     let splitResults: SplitResult[];
 
     function getSpanSplitResult(span: HTMLSpanElement): SplitResult[] {
-      const nativeRange = document.createRange();
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
-      nativeRange.selectNodeContents(span.childNodes[0]);
-      const textSplit = splitRange(nativeRange)
+      const textSplit = findAllLines(span)
         .map((r: Range) => {
+          const item: SplitResult = {};
           // 找第一个宽度不为0的矩形
-          let rects;
-          rects = r.getClientRects();
+          const rects = r.getClientRects();
+          item.text = r.toString().replace('\n', '');
           for (let rect of rects) {
             if (rect.width > 0) {
-              return { text: r.toString().replace('\n', ''), rect };
+              if (!item.rect) {
+                item.rect = {
+                  top: rect.top,
+                  bottom: rect.bottom,
+                  left: rect.left,
+                  right: rect.right,
+                };
+              } else {
+                item.rect.left = Math.min(rect.left, item.rect.left);
+                item.rect.right = Math.max(rect.right, item.rect.right);
+              }
             }
           }
+          if (!item.rect) return;
+          const computeStyle = getComputedStyle(span);
+          item.firstBlockParent = findFirstParent(span, dom => {
+            return getComputedStyle(dom).display === 'block';
+          });
+
+          item.style = `text-align-last: justify; overflow-x: hidden; font-size:${
+            parseFloat(computeStyle.fontSize) / fontScale
+          }px; width: ${item.rect.right - item.rect.left}px; font-weight:${computeStyle.fontWeight}; font-family: ${
+            computeStyle.fontFamily
+          }; line-height: ${parseFloat(computeStyle.lineHeight) / fontScale}px`;
+          return item;
         })
         .filter((i: any) => i);
-      textSplit.forEach((item: { firstBlockParent: any; style: string; rect: { right: number; left: number } }) => {
-        const computeStyle = getComputedStyle(span);
-        item.firstBlockParent = findFirstParent(span, dom => {
-          return getComputedStyle(dom).display === 'block';
-        });
-
-        item.style = `text-align-last: justify; overflow-x: hidden; font-size:${
-          parseFloat(computeStyle.fontSize) / fontScale
-        }px; width: ${item.rect.right - item.rect.left}px; font-weight:${computeStyle.fontWeight}; font-family: ${
-          computeStyle.fontFamily
-        }; line-height: ${parseFloat(computeStyle.lineHeight) / fontScale}px`;
-      });
       return textSplit;
     }
     if (spans.length === 0) {
@@ -229,7 +238,7 @@ export function UnderlineAction(opt: Options) {
     for (let splitResult of splitResults) {
       let find = false;
       for (let i = 0; i < linePosition.length; i++) {
-        if (Math.abs(splitResult.rect.bottom - linePosition[i]) < 5) {
+        if (Math.abs(splitResult.rect.bottom - linePosition[i]) < 10) {
           allRanges[linePosition[i]].push(splitResult);
           find = true;
         }
@@ -285,7 +294,7 @@ export function UnderlineAction(opt: Options) {
         // const flexS = document.createElement('span');
         const innerS = document.createElement('span');
         // flexS.appendChild(innerS);
-        innerS.innerText = `${r.text} add long text`; // 为了防止长度不够手动加点文本，反正看不到
+        innerS.innerText = `${r.text}`; // 为了防止长度不够手动加点文本，反正看不到
         innerS.setAttribute(
           'style',
           `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`,

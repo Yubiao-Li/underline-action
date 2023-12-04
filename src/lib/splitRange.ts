@@ -1,9 +1,9 @@
 // 将一个跨行的 range 切割为多个不跨行的 range，用bottom来比较，因为有的文字在同一行也会突出来
 export function splitRange(nativeRange: {
-  startContainer: Node,
-  startOffset: number,
-  endContainer: Node,
-  endOffset: number
+  startContainer: Node;
+  startOffset: number;
+  endContainer: Node;
+  endOffset: number;
 }) {
   const { startContainer, startOffset, endContainer, endOffset } = nativeRange;
   const range = document.createRange();
@@ -39,7 +39,13 @@ function findRowLastCharSameNode(bottom: number, node: Text, start: number, end:
 }
 
 // 二分法找到 range 某一行的最右字符
-function findRowLastChar(top: number, startContainer: Text, startOffset: number, endContainer: Node, endOffset: number) {
+function findRowLastChar(
+  top: number,
+  startContainer: Text,
+  startOffset: number,
+  endContainer: Node,
+  endOffset: number,
+) {
   if (startContainer === endContainer) {
     // 只有一个节点二分
     return {
@@ -69,4 +75,89 @@ function getCharRect(node: Node, offset: number) {
   range.setStart(node, offset);
   range.setEnd(node, offset + 1 > node.textContent.length ? offset : offset + 1);
   return range.getBoundingClientRect();
+}
+
+function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
+  function isNextLine(r: Range) {
+    const rects = r.getClientRects();
+    if (Math.abs(rects[rects.length - 1].bottom - rects[0].bottom) < 10) {
+      return false;
+    }
+    return true;
+  }
+
+  const range = document.createRange();
+  const startNode = leaves[startNodeIndex];
+
+  range.setStart(startNode, startOffset);
+
+  function findLastNode(start: number, end: number) {
+    if (end - start <= 1) {
+      // 如果start都超了，那lastNode肯定不是end，反之要继续判断
+      range.setEndAfter(leaves[start]);
+      return !isNextLine(range) ? end : start;
+    }
+    const mid = (start + end) >> 1;
+    range.setEndAfter(leaves[mid]);
+    return !isNextLine(range) ? findLastNode(mid, end) : findLastNode(start, mid);
+  }
+  const lastNodeIndex = findLastNode(startNodeIndex, leaves.length - 1);
+  const lastNode = leaves[lastNodeIndex];
+  function findLastCharIndex(start: number, end: number) {
+    if (end - start <= 1) {
+      range.setEnd(lastNode, end);
+      if (isNextLine(range)) {
+        if (start === 0) {
+          // 说明要去掉这个节点才能不超
+          range.setEndBefore(lastNode);
+        } else {
+          range.setEnd(lastNode, start);
+        }
+        return start;
+      } else {
+        return end;
+      }
+    }
+    const mid = (start + end) >> 1;
+    range.setEnd(lastNode, mid);
+    return !isNextLine(range) ? findLastCharIndex(mid, end) : findLastCharIndex(start, mid);
+  }
+
+  const lastCharIndex = findLastCharIndex(lastNode === startNode ? startOffset : 0, lastNode.textContent.length);
+  return {
+    range,
+    lastNodeIndex,
+    lastCharIndex,
+  };
+}
+
+export function findAllLines(dom: HTMLElement) {
+  const lines = [];
+
+  // 二分法找出每一行
+  function getLeaf(node: Node) {
+    let result: Node[] = [];
+    if (!node.childNodes || node.childNodes.length === 0) {
+      return [node];
+    }
+    node.childNodes.forEach(child => {
+      result = [...result, ...getLeaf(child)];
+    });
+    return result;
+  }
+  const leaves = getLeaf(dom);
+
+  let startNodeIndex = 0;
+  let startOffset = 0;
+  while (startNodeIndex < leaves.length) {
+    const lineInfo = findLine(leaves, startNodeIndex, startOffset);
+    lines.push(lineInfo.range);
+    startNodeIndex = lineInfo.lastNodeIndex;
+    startOffset = lineInfo.lastCharIndex;
+    if (startNodeIndex === leaves.length - 1 && startOffset === leaves[startNodeIndex].textContent.length) {
+      break;
+    }
+  }
+
+  return lines;
 }

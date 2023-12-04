@@ -1,8 +1,8 @@
 export interface SplitResult {
-  rect: DOMRect;
-  firstBlockParent: HTMLElement;
-  text: string;
-  style: string;
+  rect?: { left: number; right: number; top: number; bottom: number };
+  firstBlockParent?: HTMLElement;
+  text?: string;
+  style?: string;
 }
 
 export interface Attach {
