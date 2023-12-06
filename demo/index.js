@@ -51,16 +51,16 @@ const key = underlineAction.mockUnderline(
   280,
   300,
   {
+    innerClass: 'underline',
+  },
+);
+underlineAction.insertSpanInRange(
+  280,
+  300,
+  {
     className: 'underline',
   },
 );
-// underlineAction.insertSpanInRange(
-//   1,
-//   6,
-//   {
-//     className: 'underline',
-//   },
-// );
 // underlineAction.removeSpanByKey(key)
 // underlineAction.removeSpanByKey('1-6')
 console.log(
