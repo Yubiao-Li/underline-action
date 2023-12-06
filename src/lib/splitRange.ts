@@ -78,8 +78,8 @@ function getCharRect(node: Node, offset: number) {
 }
 
 function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
-  function isNextLine(r: Range) {
-    const rects = r.getClientRects();
+  function isNextLine(range: Range) {
+    const rects = [...range.getClientRects()].filter(r => r.width !== 0);
     if (rects.length === 0 || Math.abs(rects[rects.length - 1].bottom - rects[0].bottom) < 10) {
       return false;
     }
