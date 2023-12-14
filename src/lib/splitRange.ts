@@ -1,3 +1,5 @@
+import { isTextNode } from './utils';
+
 // 将一个跨行的 range 切割为多个不跨行的 range，用bottom来比较，因为有的文字在同一行也会突出来
 export function splitRange(nativeRange: {
   startContainer: Node;
@@ -80,7 +82,7 @@ function getCharRect(node: Node, offset: number) {
 function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
   function isNextLine(range: Range) {
     const rects = [...range.getClientRects()].filter(r => r.width !== 0);
-    if (rects.length === 0 || Math.abs(rects[rects.length - 1].bottom - rects[0].bottom) < 10) {
+    if (rects.length === 0 || Math.abs(rects[rects.length - 1].bottom - rects[0].bottom) < 15) {
       return false;
     }
     return true;
@@ -105,7 +107,11 @@ function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
   const lastNode = leaves[lastNodeIndex];
   function findLastCharIndex(start: number, end: number) {
     if (end - start <= 1) {
-      range.setEnd(lastNode, end);
+      if (isTextNode(lastNode)) {
+        range.setEnd(lastNode, end);
+      } else {
+        range.setEndAfter(lastNode);
+      }
       if (isNextLine(range)) {
         if (start === 0) {
           // 说明要去掉这个节点才能不超

@@ -48,8 +48,8 @@ let underlineAction = UnderlineAction({
 });
 
 const key = underlineAction.mockUnderline(
-  280,
-  300,
+  100,
+  150,
   {
     innerClass: 'underline',
   },
@@ -63,16 +63,16 @@ underlineAction.insertSpanInRange(
 );
 // underlineAction.removeSpanByKey(key)
 // underlineAction.removeSpanByKey('1-6')
-console.log(
-  underlineAction.insertSpanInRange(
-    100,
-    150,
-    {
-      className: 'underline',
-    },
-    true,
-  ),
-);
+// console.log(
+//   underlineAction.insertSpanInRange(
+//     100,
+//     150,
+//     {
+//       className: 'underline',
+//     },
+//     true,
+//   ),
+// );
 const renderOptions = {
   patchProp(el, key, prevValue, nextValue) {
     switch (key) {

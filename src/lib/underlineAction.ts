@@ -294,7 +294,7 @@ export function UnderlineAction(opt: Options) {
         // const flexS = document.createElement('span');
         const innerS = document.createElement('span');
         // flexS.appendChild(innerS);
-        innerS.innerText = `${r.text}`; // 为了防止长度不够手动加点文本，反正看不到
+        innerS.innerText = `${r.text}add long text`; // 为了防止长度不够手动加点文本，反正看不到
         innerS.setAttribute(
           'style',
           `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`,
