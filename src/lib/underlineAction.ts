@@ -1,5 +1,5 @@
 import { getScaleByDom } from './getScaleByDom';
-import { inSameLine, needWrap } from './needWrap';
+import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
 import { findFirstParent } from './findParent';
 import { findAllLines, splitRange } from './splitRange';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
@@ -57,6 +57,9 @@ export function UnderlineAction(opt: Options) {
       behindTextNode._renderInfo = textnode._renderInfo;
 
       textnode._next = behindTextNode;
+
+      removeNowrapLinebreak(textnode);
+      removeNowrapLinebreak(behindTextNode);
 
       state.textNodeArr.fill(
         behindTextNode,
@@ -379,6 +382,12 @@ export function UnderlineAction(opt: Options) {
       }
     });
     parentNode.normalize();
+    // 合并完text节点后，要更新_text
+    parentNode.childNodes.forEach(child => {
+      if (isTextNode(child)) {
+        removeNowrapLinebreak(child as Text);
+      }
+    });
   }
 
   function getTextByStartEnd(start: number, end: number) {
@@ -484,13 +493,7 @@ export function UnderlineAction(opt: Options) {
 
       if (isMainText) {
         if (isTextNode(currentNode) && !pluginFilterNode?.contains(currentNode)) {
-          const style = getComputedStyle(currentNode.parentNode);
-          if (style.display === 'inline' && style.whiteSpace.indexOf('pre') === -1) {
-            // 处理一下一些不换行的换行符
-            currentNode._text = currentNode.textContent.replaceAll(/\n/g, ' ');
-          } else {
-            currentNode._text = currentNode.textContent;
-          }
+          removeNowrapLinebreak(currentNode);
           if (lastTextNode) {
             // 做个链表
             lastTextNode._next = currentNode;
