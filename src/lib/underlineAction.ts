@@ -387,7 +387,7 @@ export function UnderlineAction(opt: Options) {
       const startNode = state.textNodeArr[start];
       const endNode = state.textNodeArr[end - 1];
       if (!startNode || !endNode) return '';
-      let text = startNode.textContent!.slice(start - startNode._wordoffset, end - startNode._wordoffset);
+      let text = startNode._text!.slice(start - startNode._wordoffset, end - startNode._wordoffset);
       if (startNode !== endNode) {
         // 说明不止由startNode组成text
         let curNode = startNode;
@@ -398,7 +398,7 @@ export function UnderlineAction(opt: Options) {
           } else if (inSameLine(curNode, curNode._prev)) {
             text += ' ';
           }
-          text += curNode.textContent!.slice(0, end - curNode._wordoffset);
+          text += curNode._text!.slice(0, end - curNode._wordoffset);
         } while (curNode !== endNode);
       }
 
@@ -484,6 +484,13 @@ export function UnderlineAction(opt: Options) {
 
       if (isMainText) {
         if (isTextNode(currentNode) && !pluginFilterNode?.contains(currentNode)) {
+          const style = getComputedStyle(currentNode.parentNode);
+          if (style.display === 'inline' && style.whiteSpace.indexOf('pre') === -1) {
+            // 处理一下一些不换行的换行符
+            currentNode._text = currentNode.textContent.replaceAll(/\n/g, ' ');
+          } else {
+            currentNode._text = currentNode.textContent;
+          }
           if (lastTextNode) {
             // 做个链表
             lastTextNode._next = currentNode;

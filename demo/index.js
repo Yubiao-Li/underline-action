@@ -47,20 +47,31 @@ let underlineAction = UnderlineAction({
   },
 });
 
-const key = underlineAction.mockUnderline(
-  100,
-  150,
-  {
-    innerClass: 'underline',
-  },
+console.log(underlineAction.getTextByStartEnd(20, 30));
+const key = underlineAction.mockUnderline(100, 150, {
+  innerClass: 'underline',
+});
+// const spans = underlineAction.mockUnderline(
+//   0,
+//   5,
+//   {
+//     className: 'underline',
+//   },
+//   document.body
+// );
+console.log(
+  underlineAction.insertSpanInRange(
+    100,
+    150,
+    {
+      className: 'underline',
+    },
+    true,
+  ),
 );
-underlineAction.insertSpanInRange(
-  280,
-  300,
-  {
-    className: 'underline',
-  },
-);
+underlineAction.insertSpanInRange(280, 300, {
+  className: 'underline',
+});
 // underlineAction.removeSpanByKey(key)
 // underlineAction.removeSpanByKey('1-6')
 // console.log(
