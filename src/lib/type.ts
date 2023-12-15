@@ -27,6 +27,7 @@ declare global {
     _next: Text;
     _wordoffset: number;
     _renderInfo: RenderInfo;
+    _text: string;
   }
   // interface Node {
   // }

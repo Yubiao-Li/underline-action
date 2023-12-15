@@ -47,6 +47,7 @@ let underlineAction = UnderlineAction({
   },
 });
 
+console.log(underlineAction.getTextByStartEnd(20, 30));
 // const spans = underlineAction.mockUnderline(
 //   0,
 //   5,
