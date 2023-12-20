@@ -50,7 +50,7 @@ export function removeNowrapLinebreak(node: Text) {
   const style = getComputedStyle(node.parentNode as Element);
   if (style.display === 'inline' && style.whiteSpace.indexOf('pre') === -1) {
     // 处理一下一些不换行的换行符
-    node._text = node.textContent.replaceAll(/\n/g, ' ');
+    node._text = node.textContent.replace(/\n/g, ' ');
   } else {
     node._text = node.textContent;
   }
