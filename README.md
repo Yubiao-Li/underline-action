@@ -38,14 +38,19 @@ const action = UnderlineAction({
 });
 
 // 划线
-const key = action.insertSpanInRange(start, end, props)
+const key = action.insertSpanInRange(start, end, props, temp)
 # start 开始划线的位置
 # end 结束划线的位置
 # props span上要带的属性
+# temp boolean 为true返回生成的span数组，为false会存在实例的state里面，这里如果不需要存储状态建议用true
 
-// 删除划线
+// 用key删除划线
 action.removeSpanByKey(key)
 # key 划线id
+
+// 直接用span删除划线
+action.mergeTextNode(span)
+# span 划线span
 
 // 获取起止之间文本
 action.getTextByStartEnd(start, end)
