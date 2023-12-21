@@ -445,9 +445,12 @@ export function UnderlineAction(opt: Options) {
 
   function getNativeRangeByStartAndEnd(start: number, end: number) {
     if (end <= start) return null;
+    const startContainer = state.textNodeArr[start];
+    const endContainer = state.textNodeArr[end - 1];
+    if (!startContainer || !endContainer) return null;
     const range = document.createRange();
-    range.setStart(state.textNodeArr[start], start - state.textNodeArr[start]._wordoffset);
-    range.setEnd(state.textNodeArr[end - 1], end - state.textNodeArr[end - 1]._wordoffset);
+    range.setStart(startContainer, start - startContainer._wordoffset);
+    range.setEnd(endContainer, end - endContainer._wordoffset);
     return range;
   }
 
