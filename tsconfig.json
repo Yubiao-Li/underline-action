@@ -11,7 +11,7 @@
     "outDir": "./dist",
     "noEmitOnError": true,
     "rootDir": "./src",
-    "lib": ["DOM", "ES2021", "DOM.Iterable"]
+    "lib": ["DOM", "ES2015", "DOM.Iterable"]
   },
   "include": ["src/**/*"]
 }
