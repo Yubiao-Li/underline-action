@@ -28,11 +28,12 @@ declare global {
     _wordoffset: number;
     _renderInfo: RenderInfo;
     _text: string;
+    _special: HTMLElement;
   }
   // interface Node {
   // }
 
-  interface HTMLElement {
+  interface HTMLElement extends Text {
     _isHighlightSpan: boolean;
     _isAttach?: boolean;
     _renderInfo: RenderInfo;
@@ -47,4 +48,5 @@ export interface Options {
   needFilterNode?: (node: Node) => number;
   getAttachNode?(cur: HTMLElement | Text, lastTextNode: Text): boolean;
   getRenderInfo?(cur: HTMLElement): object;
+  isSpecialNode?(cur: HTMLElement): boolean;
 }

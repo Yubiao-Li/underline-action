@@ -34,7 +34,7 @@ let underlineAction = UnderlineAction({
   needFilterNode,
   getAttachNode(node) {
     if (node.tagName === 'SUP') {
-      return true;
+      // return true;
     } else if (node.tagName === 'IMG') {
       return true;
     }
@@ -61,8 +61,8 @@ const key = underlineAction.mockUnderline(100, 150, {
 // );
 console.log(
   underlineAction.insertSpanInRange(
-    100,
-    150,
+    0,
+    3,
     {
       className: 'underline',
     },

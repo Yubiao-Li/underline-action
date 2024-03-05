@@ -3,12 +3,11 @@ import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
 import { findFirstParent } from './findParent';
 import { findAllLines, splitRange } from './splitRange';
 // import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
-import { Attach, Options, SplitResult } from './type';
+import { Options, SplitResult } from './type';
 import { RenderInfoPlugin } from './plugins/renderInfo';
 import { isTextNode } from './utils';
 import { AttachPlugin } from './plugins/attach';
-
-const SPECIAL_NODE = ['SUB', 'SUP'];
+import { SpecialNodePlugin } from './plugins/special';
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
@@ -17,7 +16,7 @@ function defaultGetKeyByRange({ start, end }) {
 export function UnderlineAction(opt: Options) {
   let { getKeyByRange, tag, selector, needFilterNode } = opt;
   const _getKeyByRange = getKeyByRange ? getKeyByRange : defaultGetKeyByRange;
-  let plugins = [RenderInfoPlugin, AttachPlugin];
+  let plugins = [RenderInfoPlugin, AttachPlugin, SpecialNodePlugin];
   const state: {
     textNodeArr: Text[];
   } = {
@@ -100,7 +99,7 @@ export function UnderlineAction(opt: Options) {
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
     function resolveTextNode(textnode: Text, startOffset: number, endOffset: number, isAttach?: boolean) {
-      if (SPECIAL_NODE.indexOf(textnode.parentElement!.tagName) !== -1) {
+      if (textnode._special) {
         return resolveSpecialNode(textnode, startOffset, endOffset, isAttach);
       }
       const len = textnode.textContent!.length;
