@@ -12,4 +12,8 @@ export class BasePlugin {
   }
 
   static afterResolveNode(curProcessTextNode: Text, start: number, end: number, { resolveTextNode }) {}
+
+  static appendText(currentNode: Text, start: number, end: number) {
+    return '';
+  }
 }

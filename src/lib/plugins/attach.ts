@@ -11,6 +11,11 @@ export class AttachPlugin extends BasePlugin {
     this.attachMap = {};
   }
 
+  static getAttachs(node: Text) {
+    const attachPosition = node._wordoffset + node.textContent.length;
+    return this.attachMap[attachPosition] || [];
+  }
+
   static process(currentNode: HTMLElement | Text, opt: Options, lastTextNode: Text) {
     let { getAttachNode } = opt;
     // 找一下有没有文字节点要带上它一起划线
@@ -35,5 +40,15 @@ export class AttachPlugin extends BasePlugin {
         // resolveTextNode(node, 0, node.textContent.length, true);
       });
     }
+  }
+
+  // 这个方案不行，因为会遗漏attach的文本
+  static appendText(currentNode: Text, start: number, end: number) {
+    if (end > currentNode._wordoffset + currentNode.textContent.length) {
+      return this.getAttachs(currentNode).reduce((pre, cur) => {
+        return pre + cur.node.textContent || '';
+      }, '');
+    }
+    return '';
   }
 }

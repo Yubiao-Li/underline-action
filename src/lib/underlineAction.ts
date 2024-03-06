@@ -30,10 +30,9 @@ export function UnderlineAction(opt: Options) {
 
   function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
     let spans: HTMLSpanElement[] = [];
-    function createHighlightSpan(isAttach?: boolean) {
+    function createHighlightSpan() {
       const span = document.createElement(tag || 'span');
       span.className = 'underline';
-      span._isAttach = isAttach;
       spans.push(span);
       Object.keys(props).forEach(key => (span[key] = props[key]));
       return span;
@@ -63,44 +62,52 @@ export function UnderlineAction(opt: Options) {
       state.textNodeArr.fill(
         behindTextNode,
         behindTextNode._wordoffset,
-        behindTextNode.textContent!.length + behindTextNode._wordoffset,
+        behindTextNode.textContent!.length + behindTextNode._wordoffset
       );
 
       return behindTextNode;
     }
 
-    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number, isAttach?: boolean) {
-      const len = textnode.textContent!.length;
-      const parentNode = textnode.parentElement!;
-      const firstNode = parentNode.cloneNode();
-      const secondNode = parentNode.cloneNode();
-      const lastNode = parentNode.cloneNode();
-      let lastTextNode;
-      let secondTextNode = textnode;
-      if (startOffset !== 0) {
-        secondTextNode = splitTextNode(textnode, startOffset);
-        firstNode.appendChild(textnode);
-        parentNode.parentElement!.insertBefore(firstNode, parentNode);
-      }
-      if (endOffset !== len) {
-        lastTextNode = splitTextNode(secondTextNode, endOffset - startOffset);
-        lastNode.appendChild(lastTextNode);
-      }
-      const highlightSpan = createHighlightSpan(isAttach);
-      secondNode.appendChild(secondTextNode);
-      highlightSpan.appendChild(secondNode);
-      parentNode.parentElement!.insertBefore(highlightSpan, parentNode);
-      if (lastTextNode) {
-        parentNode.parentElement!.insertBefore(lastNode, parentNode);
-      }
-      parentNode.remove();
-      return secondTextNode;
+    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number) {
+      // 先不做分割special node，因为实现起来太复杂了
+      const highlightSpan = createHighlightSpan();
+      textnode._special.parentElement.insertBefore(highlightSpan, textnode._special);
+      highlightSpan.appendChild(textnode._special);
+
+      // const len = textnode.textContent!.length;
+      // const parentNode = textnode.parentElement!;
+      // const firstNode = parentNode.cloneNode();
+      // const secondNode = parentNode.cloneNode();
+      // const lastNode = parentNode.cloneNode();
+      // let lastTextNode;
+      // let secondTextNode = textnode;
+      // if (startOffset !== 0) {
+      //   secondTextNode = splitTextNode(textnode, startOffset);
+      //   firstNode.appendChild(textnode);
+      //   parentNode.parentElement!.insertBefore(firstNode, parentNode);
+      // }
+      // if (endOffset !== len) {
+      //   lastTextNode = splitTextNode(secondTextNode, endOffset - startOffset);
+      //   lastNode.appendChild(lastTextNode);
+      // }
+      // secondNode.appendChild(secondTextNode);
+      // highlightSpan.appendChild(secondNode);
+      // parentNode.parentElement!.insertBefore(highlightSpan, parentNode);
+      // if (lastTextNode) {
+      //   parentNode.parentElement!.insertBefore(lastNode, parentNode);
+      // }
+      // parentNode.remove();
+      return textnode;
     }
 
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
-    function resolveTextNode(textnode: Text, startOffset: number, endOffset: number, isAttach?: boolean) {
+    function resolveTextNode(textnode: Text, startOffset: number, endOffset: number) {
       if (textnode._special) {
-        return resolveSpecialNode(textnode, startOffset, endOffset, isAttach);
+        // 连续的只要resolve一次就好
+        while (textnode._next && textnode._next._special === textnode._special) {
+          textnode = textnode._next;
+        }
+        return resolveSpecialNode(textnode, startOffset, endOffset);
       }
       const len = textnode.textContent!.length;
       let secondNode = textnode,
@@ -112,7 +119,7 @@ export function UnderlineAction(opt: Options) {
         lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
-      const span = createHighlightSpan(isAttach);
+      const span = createHighlightSpan();
       secondNode.parentElement!.insertBefore(span, secondNode);
       span.appendChild(secondNode);
 
@@ -132,7 +139,7 @@ export function UnderlineAction(opt: Options) {
         resolveTextNode(
           curProcessTextNode,
           start - curProcessTextNode._wordoffset,
-          end - curProcessTextNode._wordoffset,
+          end - curProcessTextNode._wordoffset
         );
       } else {
         // 如果是不同段，需要一直遍历到最后一个节点，全部分割一遍
@@ -142,7 +149,7 @@ export function UnderlineAction(opt: Options) {
             curProcessTextNode = resolveTextNode(
               curProcessTextNode,
               start - curProcessTextNode._wordoffset,
-              curProcessTextNode.textContent!.length,
+              curProcessTextNode.textContent!.length
             );
           } else if (curProcessTextNode === endTextNode) {
             curProcessTextNode = resolveTextNode(curProcessTextNode, 0, end - curProcessTextNode._wordoffset);
@@ -154,7 +161,7 @@ export function UnderlineAction(opt: Options) {
           plugins.forEach(p =>
             p.afterResolveNode(curProcessTextNode, start, end, {
               resolveTextNode,
-            }),
+            })
           );
 
           curProcessTextNode = curProcessTextNode._next;
@@ -178,7 +185,7 @@ export function UnderlineAction(opt: Options) {
     end: number,
     props: any = {},
     container: HTMLElement | null = null,
-    temp = false,
+    temp = false
   ) {
     const underlineKey = _getKeyByRange({ start, end });
     const spans = getSpanByKey(underlineKey);
@@ -228,7 +235,7 @@ export function UnderlineAction(opt: Options) {
       const underlineKey = insertSpanInRange(start, end);
       splitResults = getSpanByKey(underlineKey as string).reduce(
         (pre: any, cur: HTMLSpanElement) => [...pre, ...getSpanSplitResult(cur)],
-        [],
+        []
       );
       // 用完就删掉
       removeSpanByKey(underlineKey as string);
@@ -286,7 +293,7 @@ export function UnderlineAction(opt: Options) {
           rects[0].rect.left - containerRect.left - parseFloat(containerStyle.borderLeftWidth)
         }px; font-size: ${parseFloat(parentStyle.fontSize) / fontScale}px; line-height: ${
           parseFloat(parentStyle.lineHeight) / fontScale
-        }px;text-align-last: justify; `,
+        }px;text-align-last: justify; `
       );
 
       mockContainer.appendChild(span);
@@ -299,7 +306,7 @@ export function UnderlineAction(opt: Options) {
         innerS.innerText = `${r.text}add long text`; // 为了防止长度不够手动加点文本，反正看不到
         innerS.setAttribute(
           'style',
-          `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`,
+          `${r.style}; margin-left: ${index === 0 ? 0 : r.rect.left - rects[index - 1].rect.right}px`
         );
         innerS.className = props.innerClass;
         // s.classList.add('mock_underline_child');
@@ -310,12 +317,12 @@ export function UnderlineAction(opt: Options) {
       const maxTopOffset = Math.max(
         ...Array.from(span.children).map(innerS => {
           return span.getBoundingClientRect().top - innerS.getBoundingClientRect().top;
-        }),
+        })
       );
       const maxBottomOffset = Math.max(
         ...Array.from(span.children).map(innerS => {
           return innerS.getBoundingClientRect().bottom - span.getBoundingClientRect().bottom;
-        }),
+        })
       );
       // 作者发现块级元素包含行内元素会导致块级元素和行内元素的top不同，而这个偏移值是我们模拟行内元素所需要的
       span.style.marginTop = `${maxTopOffset > 0 ? 0 : maxTopOffset}px`;
@@ -365,7 +372,6 @@ export function UnderlineAction(opt: Options) {
       parentNode.insertBefore(curTextNode, span);
     }
     span.remove();
-    if (span._isAttach) return;
     // 在合并textnode前，找到连续的textnode节点并重新指定_prev和_next
     let firstTextNode: Text | null;
     parentNode.childNodes.forEach((child: any) => {
@@ -395,19 +401,22 @@ export function UnderlineAction(opt: Options) {
       const startNode = state.textNodeArr[start];
       const endNode = state.textNodeArr[end - 1];
       if (!startNode || !endNode) return '';
-      let text = startNode._text!.slice(start - startNode._wordoffset, end - startNode._wordoffset);
-      if (startNode !== endNode) {
-        // 说明不止由startNode组成text
-        let curNode = startNode;
-        do {
+      let text = '';
+      let curNode: Text = null;
+      while (curNode !== endNode) {
+        if (!curNode) {
+          curNode = startNode;
+        } else {
           curNode = curNode._next;
           if (needWrap(curNode, curNode._prev)) {
             text += '\n';
           } else if (inSameLine(curNode, curNode._prev)) {
             text += ' ';
           }
-          text += curNode._text!.slice(0, end - curNode._wordoffset);
-        } while (curNode !== endNode);
+        }
+        const sliceStart = Math.max(0, start - curNode._wordoffset);
+        const sliceEnd = Math.min(end - curNode._wordoffset, curNode.textContent.length);
+        text += curNode._text!.slice(sliceStart, sliceEnd);
       }
 
       return text;

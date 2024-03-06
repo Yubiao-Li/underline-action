@@ -35,7 +35,6 @@ declare global {
 
   interface HTMLElement extends Text {
     _isHighlightSpan: boolean;
-    _isAttach?: boolean;
     _renderInfo: RenderInfo;
     underlineKey: string;
   }
