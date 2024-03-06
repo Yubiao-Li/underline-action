@@ -194,27 +194,14 @@ export function UnderlineAction(opt: Options) {
 
     function getSpanSplitResult(span: HTMLSpanElement): SplitResult[] {
       // 这里可能有坑，span的第一个子节点不一定是text节点，mark
+      const rects = [...span.getClientRects()].filter(r => r.width !== 0);
       const textSplit = findAllLines(span)
-        .map((r: Range) => {
+        .map((r: Range, index: number) => {
           const item: SplitResult = {};
           // 找第一个宽度不为0的矩形
-          const rects = r.getClientRects();
           item.text = r.toString().replace('\n', '');
-          for (let rect of rects) {
-            if (rect.width > 0) {
-              if (!item.rect) {
-                item.rect = {
-                  top: rect.top,
-                  bottom: rect.bottom,
-                  left: rect.left,
-                  right: rect.right,
-                };
-              } else {
-                item.rect.left = Math.min(rect.left, item.rect.left);
-                item.rect.right = Math.max(rect.right, item.rect.right);
-              }
-            }
-          }
+          item.rect = rects[index];
+
           if (!item.rect) return;
           const computeStyle = getComputedStyle(span);
           item.firstBlockParent = findFirstParent(span, dom => {
