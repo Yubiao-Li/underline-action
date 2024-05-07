@@ -72,7 +72,7 @@ function getCharBottom(node: Text, offset: number) {
 }
 
 // 获取 range 某个字符位置的 DOMRect
-function getCharRect(node: Node, offset: number) {
+export function getCharRect(node: Node, offset: number) {
   const range = document.createRange();
   range.setStart(node, offset);
   range.setEnd(node, offset + 1 > node.textContent.length ? offset : offset + 1);

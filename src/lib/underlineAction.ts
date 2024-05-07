@@ -1,8 +1,7 @@
 import { getScaleByDom } from './getScaleByDom';
 import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
 import { findFirstParent } from './findParent';
-import { findAllLines, splitRange } from './splitRange';
-// import { createAttachMockNode, isAttachMockNode, removeAttachMockNode } from './core/attachMockNode.js';
+import { findAllLines } from './splitRange';
 import { Options, SplitResult } from './type';
 import { RenderInfoPlugin } from './plugins/renderInfo';
 import { isTextNode } from './utils';
@@ -158,15 +157,54 @@ export function UnderlineAction(opt: Options) {
             curProcessTextNode = resolveTextNode(curProcessTextNode, 0, curProcessTextNode.textContent!.length);
           }
 
-          plugins.forEach(p =>
-            p.afterResolveNode(curProcessTextNode, start, end, {
-              resolveTextNode,
-            })
-          );
+          plugins.forEach(p => p.afterResolveNode(curProcessTextNode, start, end));
 
           curProcessTextNode = curProcessTextNode._next;
         } while (curProcessTextNode);
       }
+
+      // 这里处理一下同段落不同字体导致划线参差不齐的情况
+      let lastFont = null;
+      let fontCounts = new Map();
+      // 初始化字数最多的字体及其字数
+      let mostUsedFont = null;
+      let maxCount = 0;
+      let needProcessSpan = [];
+
+      function wrapFontSpan(span: HTMLSpanElement, font: string) {
+        // 包一个span，外面的span用来划线撑高度，里面的span用来保持字体
+        const innerSpan = document.createElement('span');
+        span._innerSpan = innerSpan;
+        innerSpan.style.fontFamily = getComputedStyle(span).fontFamily;
+        span.style.fontFamily = font;
+        [...span.childNodes].forEach(child => {
+          innerSpan.appendChild(child);
+        });
+        span.appendChild(innerSpan);
+      }
+
+      spans.forEach((s, i, arr) => {
+        needProcessSpan.push(s);
+        const style = getComputedStyle(s);
+        if (fontCounts.has(style.fontFamily)) {
+          fontCounts.set(style.fontFamily, fontCounts.get(style.fontFamily) + s.textContent.length);
+        } else {
+          fontCounts.set(style.fontFamily, s.textContent.length);
+        }
+        if (fontCounts.get(style.fontFamily) > maxCount) {
+          maxCount = fontCounts.get(style.fontFamily);
+          mostUsedFont = style.fontFamily;
+        }
+
+        if (!arr[i + 1] || needWrap(s, arr[i + 1])) {
+          needProcessSpan.forEach(needS => {
+            if (getComputedStyle(needS).fontFamily !== mostUsedFont) {
+              wrapFontSpan(needS, mostUsedFont);
+            }
+          });
+          needProcessSpan = [];
+        }
+      });
 
       // spans = [...spans, ...attachMockSpans];
       if (temp) {
@@ -349,9 +387,13 @@ export function UnderlineAction(opt: Options) {
   }
 
   function mergeTextNode(span: HTMLElement) {
-    // if (isAttachMockNode(span)) {
-    //   return removeAttachMockNode(span);
-    // }
+    if (span._innerSpan) {
+      [...span._innerSpan.childNodes].forEach(child => {
+        span.appendChild(child);
+      });
+      span._innerSpan.remove();
+      span._innerSpan = null;
+    }
     const parentNode = span.parentNode!;
     let curTextNode: any;
     // 把所有子节点拿到外面

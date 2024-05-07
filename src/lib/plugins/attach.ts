@@ -30,7 +30,7 @@ export class AttachPlugin extends BasePlugin {
     return true;
   }
 
-  static afterResolveNode(curProcessTextNode: Text, start: number, end: number, { resolveTextNode }): void {
+  static afterResolveNode(curProcessTextNode: Text, start: number, end: number): void {
     const pos = curProcessTextNode._wordoffset + curProcessTextNode.textContent.length;
     const attachs = this.attachMap[pos];
     if (pos < end && attachs) {
@@ -40,15 +40,5 @@ export class AttachPlugin extends BasePlugin {
         // resolveTextNode(node, 0, node.textContent.length, true);
       });
     }
-  }
-
-  // 这个方案不行，因为会遗漏attach的文本
-  static appendText(currentNode: Text, start: number, end: number) {
-    if (end > currentNode._wordoffset + currentNode.textContent.length) {
-      return this.getAttachs(currentNode).reduce((pre, cur) => {
-        return pre + cur.node.textContent || '';
-      }, '');
-    }
-    return '';
   }
 }

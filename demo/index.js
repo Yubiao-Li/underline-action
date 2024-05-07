@@ -61,8 +61,8 @@ const key = underlineAction.mockUnderline(100, 150, {
 //   document.body
 // );
 const spans = underlineAction.insertSpanInRange(
-  0,
-  3,
+  350,
+  400,
   {
     className: 'underline',
   },
