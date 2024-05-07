@@ -6,5 +6,5 @@ export function findFirstParent(dom: Node, condition: (dom: Element) => boolean)
     }
     parent = parent.parentElement;
   }
-  return parent;
+  return parent!;
 }

@@ -70,7 +70,7 @@ export function UnderlineAction(opt: Options) {
     function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number) {
       // 先不做分割special node，因为实现起来太复杂了
       const highlightSpan = createHighlightSpan();
-      textnode._special.parentElement.insertBefore(highlightSpan, textnode._special);
+      textnode._special.parentElement!.insertBefore(highlightSpan, textnode._special);
       highlightSpan.appendChild(textnode._special);
 
       // const len = textnode.textContent!.length;
@@ -167,9 +167,9 @@ export function UnderlineAction(opt: Options) {
       let lastFont = null;
       let fontCounts = new Map();
       // 初始化字数最多的字体及其字数
-      let mostUsedFont = null;
+      let mostUsedFont = '';
       let maxCount = 0;
-      let needProcessSpan = [];
+      let needProcessSpan: HTMLSpanElement[] = [];
 
       function wrapFontSpan(span: HTMLSpanElement, font: string) {
         // 包一个span，外面的span用来划线撑高度，里面的span用来保持字体
@@ -187,9 +187,9 @@ export function UnderlineAction(opt: Options) {
         needProcessSpan.push(s);
         const style = getComputedStyle(s);
         if (fontCounts.has(style.fontFamily)) {
-          fontCounts.set(style.fontFamily, fontCounts.get(style.fontFamily) + s.textContent.length);
+          fontCounts.set(style.fontFamily, fontCounts.get(style.fontFamily) + s.textContent!.length);
         } else {
-          fontCounts.set(style.fontFamily, s.textContent.length);
+          fontCounts.set(style.fontFamily, s.textContent!.length);
         }
         if (fontCounts.get(style.fontFamily) > maxCount) {
           maxCount = fontCounts.get(style.fontFamily);
@@ -222,7 +222,7 @@ export function UnderlineAction(opt: Options) {
     start: number,
     end: number,
     props: any = {},
-    container: HTMLElement | null = null,
+    container: HTMLElement | undefined = undefined,
     temp = false
   ) {
     const underlineKey = _getKeyByRange({ start, end });
@@ -235,10 +235,10 @@ export function UnderlineAction(opt: Options) {
       const rects = [...span.getClientRects()].filter(r => r.width !== 0);
       const textSplit = findAllLines(span)
         .map((r: Range, index: number) => {
-          const item: SplitResult = {};
-          // 找第一个宽度不为0的矩形
-          item.text = r.toString().replace('\n', '');
-          item.rect = rects[index];
+          const item: SplitResult = {
+            text: r.toString().replace('\n', ''),
+            rect: rects[index]
+          };
 
           if (!item.rect) return;
           const computeStyle = getComputedStyle(span);
@@ -272,14 +272,14 @@ export function UnderlineAction(opt: Options) {
     for (let splitResult of splitResults) {
       let find = false;
       for (let i = 0; i < linePosition.length; i++) {
-        if (Math.abs(splitResult.rect.bottom - linePosition[i]) < 10) {
+        if (Math.abs(splitResult.rect!.bottom - linePosition[i]) < 10) {
           allRanges[linePosition[i]].push(splitResult);
           find = true;
         }
       }
       if (!find) {
-        linePosition.push(splitResult.rect.bottom);
-        allRanges[splitResult.rect.bottom] = [splitResult];
+        linePosition.push(splitResult.rect!.bottom);
+        allRanges[splitResult.rect!.bottom] = [splitResult];
       }
     }
     allRanges = Object.keys(allRanges)
@@ -300,12 +300,12 @@ export function UnderlineAction(opt: Options) {
         // 但是每一行的父元素有可能不一样
         mockContainer = firstBlockParent;
       }
-      mockContainer.style.position = 'relative';
-      const containerRect = mockContainer.getClientRects()[0];
-      const containerStyle = getComputedStyle(mockContainer);
+      mockContainer!.style.position = 'relative';
+      const containerRect = mockContainer!.getClientRects()[0];
+      const containerStyle = getComputedStyle(mockContainer!);
       const span = document.createElement(tag || 'span');
 
-      const parentStyle = getComputedStyle(firstBlockParent);
+      const parentStyle = getComputedStyle(firstBlockParent!);
       // 同一行要以最高的位置为基准
       const top = rects.reduce((pre, cur) => {
         return Math.min(pre, cur.rect.top);
@@ -321,7 +321,7 @@ export function UnderlineAction(opt: Options) {
         }px;text-align-last: justify; `
       );
 
-      mockContainer.appendChild(span);
+      mockContainer!.appendChild(span);
 
       rects.forEach((r, index) => {
         // inline-flex会影响下划线粗细，所以要再套一层
@@ -392,7 +392,7 @@ export function UnderlineAction(opt: Options) {
         span.appendChild(child);
       });
       span._innerSpan.remove();
-      span._innerSpan = null;
+      span._innerSpan = undefined;
     }
     const parentNode = span.parentNode!;
     let curTextNode: any;
@@ -431,7 +431,7 @@ export function UnderlineAction(opt: Options) {
       const endNode = state.textNodeArr[end - 1];
       if (!startNode || !endNode) return '';
       let text = '';
-      let curNode: Text = null;
+      let curNode: Text | null = null;
       while (curNode !== endNode) {
         if (!curNode) {
           curNode = startNode;
@@ -444,7 +444,7 @@ export function UnderlineAction(opt: Options) {
           }
         }
         const sliceStart = Math.max(0, start - curNode._wordoffset);
-        const sliceEnd = Math.min(end - curNode._wordoffset, curNode.textContent.length);
+        const sliceEnd = Math.min(end - curNode._wordoffset, curNode.textContent!.length);
         text += curNode._text!.slice(sliceStart, sliceEnd);
       }
 

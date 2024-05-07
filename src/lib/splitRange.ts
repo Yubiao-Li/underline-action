@@ -19,7 +19,7 @@ export function splitRange(nativeRange: {
     const last = findRowLastChar(rowBottom, startContainer as Text, startOffset, endContainer, endOffset);
     range.setStart(startContainer, startOffset);
     range.setEnd(last.node, last.offset + 1);
-    const findNextNode = last.offset + 1 === last.node.textContent.length;
+    const findNextNode = last.offset + 1 === last.node.textContent!.length;
     const others = splitRange({
       startContainer: findNextNode ? last.node._next : last.node,
       startOffset: findNextNode ? 0 : last.offset + 1,
@@ -58,7 +58,7 @@ function findRowLastChar(
     // 下一个文字节点不在当前行，那么说明转折点就在当前文字节点
     return {
       node: startContainer,
-      offset: findRowLastCharSameNode(top, startContainer, startOffset, startContainer.textContent.length),
+      offset: findRowLastCharSameNode(top, startContainer, startOffset, startContainer.textContent!.length),
     };
   } else {
     // 首尾节点不同但换行不发生在首节点
@@ -75,7 +75,7 @@ function getCharBottom(node: Text, offset: number) {
 export function getCharRect(node: Node, offset: number) {
   const range = document.createRange();
   range.setStart(node, offset);
-  range.setEnd(node, offset + 1 > node.textContent.length ? offset : offset + 1);
+  range.setEnd(node, offset + 1 > node.textContent!.length ? offset : offset + 1);
   return range.getBoundingClientRect();
 }
 
@@ -129,7 +129,7 @@ function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
     return !isNextLine(range) ? findLastCharIndex(mid, end) : findLastCharIndex(start, mid);
   }
 
-  const lastCharIndex = findLastCharIndex(lastNode === startNode ? startOffset : 0, lastNode.textContent.length);
+  const lastCharIndex = findLastCharIndex(lastNode === startNode ? startOffset : 0, lastNode.textContent!.length);
   return {
     range,
     lastNodeIndex,
@@ -138,7 +138,7 @@ function findLine(leaves: Node[], startNodeIndex: number, startOffset: number) {
 }
 
 export function findAllLines(dom: HTMLElement) {
-  const lines = [];
+  const lines: Range[] = [];
 
   // 二分法找出每一行
   function getLeaf(node: Node) {
@@ -160,7 +160,7 @@ export function findAllLines(dom: HTMLElement) {
     lines.push(lineInfo.range);
     startNodeIndex = lineInfo.lastNodeIndex;
     startOffset = lineInfo.lastCharIndex;
-    if (startNodeIndex === leaves.length - 1 && startOffset === leaves[startNodeIndex].textContent.length) {
+    if (startNodeIndex === leaves.length - 1 && startOffset === leaves[startNodeIndex].textContent?.length) {
       break;
     }
   }

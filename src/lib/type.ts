@@ -1,5 +1,5 @@
 export interface SplitResult {
-  rect?: { left: number; right: number; top: number; bottom: number };
+  rect: { left: number; right: number; top: number; bottom: number };
   firstBlockParent?: HTMLElement;
   text?: string;
   style?: string;
@@ -11,7 +11,7 @@ export interface Attach {
   node: Text;
 }
 
-export interface RenderInfo extends Record<string, string | number> {
+export interface RenderInfo extends Record<string, string | number | undefined> {
   type: string;
   colspan?: string;
   tableCol?: number;
