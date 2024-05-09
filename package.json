@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "rm -rf dist && vite build && tsc",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "docs": "cd website && npm start"
   },
   "files": [
     "src",
