@@ -43,7 +43,7 @@ declare global {
 
 export interface Options {
   getKeyByRange?(range: { start: number; end: number; props?: any }): string;
-  tag: string;
+  tag?: string;
   selector: string | HTMLElement;
   needFilterNode?: (node: Node) => number;
   getAttachNode?(cur: HTMLElement | Text, lastTextNode: Text): boolean;

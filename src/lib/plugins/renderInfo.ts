@@ -48,7 +48,7 @@ export class RenderInfoPlugin extends BasePlugin {
     let curNode;
 
     function getRenderInfo(curNode, text) {
-      if (curNode._renderInfo.type === 'td' && curNode._prev._renderInfo.type === 'td') {
+      if (curNode._prev && curNode._renderInfo.type === 'td' && curNode._prev._renderInfo.type === 'td') {
         // 表格元素，如果换行，在同一个格子里面的行为和不同格子的含义不同
         if (needWrap(curNode, curNode._prev)) {
           if (

@@ -9,6 +9,7 @@ export default defineConfig(({ command }) => {
       'process.env.NODE_ENV': '"production"'
     },
     build: {
+      sourcemap: true,
       minify: false, // 方便debug
       //压缩
       rollupOptions: {
