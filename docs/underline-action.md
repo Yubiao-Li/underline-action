@@ -4,6 +4,7 @@
 import Font from './components/Font.vue'
 import Attach from './components/Attach.vue'
 import RenderInfo from './components/RenderInfo.vue'
+import Mock from './components/Mock.vue'
 </script>
 
 ## 参差不齐的划线
@@ -18,6 +19,9 @@ import RenderInfo from './components/RenderInfo.vue'
 
 <RenderInfo />
 
+## Mock underline
+
+<Mock />
 
 <style>
   .underline {

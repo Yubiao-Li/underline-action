@@ -40,22 +40,17 @@
   </p>
 </template>
 
-<script setup>
-import { onMounted, ref } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { UnderlineAction } from '../../src/index.js';
 
 const content = ref();
+
 onMounted(() => {
   const underlineAction = UnderlineAction({
     selector: content.value,
   });
-  underlineAction.insertSpanInRange(
-    0,
-    40,
-    {
-      className: 'underline',
-    },
-    true
-  );
+
+  underlineAction.mockUnderline(0, 50)
 });
 </script>
