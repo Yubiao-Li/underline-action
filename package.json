@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "rm -rf dist && vite build && tsc",
     "prepare": "npm run build",
-    "docs": "cd website && npm start",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

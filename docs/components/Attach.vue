@@ -4,7 +4,7 @@
     class="rich_media_content js_underline_content autoTypeSetting24psection fix_apple_default_style"
     id="js_content"
     style="visibility: visible"
-    >关于<sup><span>1234578</span>1234</sup> 美国银行业。老<img
+    >关于<sup><span>1234578</span>1234</sup>美国银行业。老<img
       id="biaoqin"
       class="wx_img"
       src="https://res.wx.qq.com/t/wx_fed/we-emoji/res/v1.3.10/assets/Expression/Expression_42@2x.png"
