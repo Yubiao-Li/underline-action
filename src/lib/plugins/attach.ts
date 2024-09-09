@@ -20,7 +20,7 @@ export class AttachPlugin extends BasePlugin {
     let { getAttachNode } = opt;
     // 找一下有没有文字节点要带上它一起划线
     !getAttachNode && (getAttachNode = () => false);
-    if (getAttachNode(currentNode, lastTextNode)) {
+    if (lastTextNode && getAttachNode(currentNode, lastTextNode)) {
       const attachPosition = lastTextNode._wordoffset + lastTextNode.textContent.length;
       this.attachMap[attachPosition]
         ? this.attachMap[attachPosition].push({ node: currentNode as Text, mockNode: null, quote: 0 })
