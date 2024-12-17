@@ -163,8 +163,6 @@ export function UnderlineAction(opt: Options) {
         } while (curProcessTextNode);
       }
 
-      // 这里处理一下同段落不同字体导致划线参差不齐的情况
-      let lastFont = null;
       let fontCounts = new Map();
       // 初始化字数最多的字体及其字数
       let mostUsedFont = '';

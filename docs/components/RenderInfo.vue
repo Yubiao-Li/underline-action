@@ -1,10 +1,14 @@
 <template>
   <div ref="content">
+    <p>打撒打撒打开</p>
+    <p>；里卡多我都挖坑</p>
     <table
-      ><tr><td colspan="2">222</td></tr
-      ><tr
-        ><td>1<br />2</td><td>34</td><td>56</td></tr
-      ><tr><td>78</td><td>90</td><td>44</td></tr></table
+      ><tbody>
+        <tr><td colspan="2">222</td></tr
+        ><tr
+          ><td>1<br />2</td><td>34</td><td>56</td></tr
+        ><tr><td>78</td><td>90</td><td>44</td></tr>
+      </tbody></table
     >
   </div>
   <div
@@ -63,6 +67,6 @@ onMounted(() => {
     },
   });
 
-  render(underlineAction.getRenderInfoByStartEnd(0, 6), renderDom.value, renderOptions);
+  render(underlineAction.getRenderInfoByStartEnd(10, 20), renderDom.value, renderOptions);
 });
 </script>

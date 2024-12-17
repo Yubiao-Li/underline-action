@@ -48,42 +48,46 @@ export class RenderInfoPlugin extends BasePlugin {
     let curNode;
 
     function getRenderInfo(curNode, text) {
-      if (curNode._prev && curNode._renderInfo.type === 'td' && curNode._prev._renderInfo.type === 'td') {
-        // 表格元素，如果换行，在同一个格子里面的行为和不同格子的含义不同
-        if (needWrap(curNode, curNode._prev)) {
-          if (
-            result.length &&
-            curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
-            curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
-          ) {
-            result[result.length - 1].textContent += `\n${text}`;
-            return;
-          // } else {
-          //   result.push({
-          //     type: 'table-newline',
-          //   });
+      if (curNode._prev && curNode !== startNode) {
+        // 如果是开头的节点，不需要判断是否需要换行
+        if (curNode._prev && curNode._renderInfo.type === 'td' && curNode._prev._renderInfo.type === 'td') {
+          // 表格元素，如果换行，在同一个格子里面的行为和不同格子的含义不同
+          if (needWrap(curNode, curNode._prev)) {
+            if (
+              result.length &&
+              curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
+              curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
+            ) {
+              result[result.length - 1].textContent += `\n${text}`;
+              return;
+            // } else {
+            //   result.push({
+            //     type: 'table-newline',
+            //   });
+            }
+          } else {
+            if (
+              result.length &&
+              curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
+              curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
+            ) {
+              result[result.length - 1].textContent += text;
+              return;
+            }
           }
         } else {
           if (
-            result.length &&
-            curNode._renderInfo.tableCol === curNode._prev._renderInfo.tableCol &&
-            curNode._renderInfo.tableRow === curNode._prev._renderInfo.tableRow
+            needWrap(curNode, curNode._prev) &&
+            curNode._renderInfo.type !== 'td' &&
+            curNode._prev._renderInfo.type !== 'td'
           ) {
-            result[result.length - 1].textContent += text;
-            return;
+            result.push({
+              type: 'newline',
+            });
           }
         }
-      } else {
-        if (
-          needWrap(curNode, curNode._prev) &&
-          curNode._renderInfo.type !== 'td' &&
-          curNode._prev._renderInfo.type !== 'td'
-        ) {
-          result.push({
-            type: 'newline',
-          });
-        }
       }
+      
       result.push({ ...curNode._renderInfo, textContent: text });
     }
     while (curNode !== endNode) {

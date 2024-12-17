@@ -2,7 +2,7 @@
   <p
     ref="content"
     style="margin: 10px 5px; display: block; line-height: 1.75em"
-    >
+  >
     <span style="font-size: 17px; letter-spacing: 1px; color: rgb(127, 127, 127)"
       ><span
         style="font-family: 'Courier New'; font-size: 17px; letter-spacing: 1px; color: rgb(127, 127, 127)"
@@ -39,9 +39,7 @@
       ></span
     >
 
-
-  <section style="text-align: justify; padding: 0px 0.5em; line-height: 1.75em; position: relative"
-    ><span style="font-family: Arial, Helvetica, sans-serif"
+    <span style="font-family: Arial, Helvetica, sans-serif"
       ><span
         style="font-size: 16px; letter-spacing: 2px"
         class="js_darkmode__text__51"
@@ -75,10 +73,8 @@
       ><span style="font-size: 16px; letter-spacing: 2px"
         ><strong class="js_darkmode__text__60"><span class="wx_text_underline">校独揽了1/10份额！</span></strong></span
       ></span
-    ></section
-  >
+    ><
   </p>
-
 </template>
 
 <script setup>
@@ -98,7 +94,6 @@ onMounted(() => {
     },
     true
   );
-
 
   underlineAction.insertSpanInRange(
     60,
