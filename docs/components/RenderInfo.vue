@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from '@vue/runtime-core';
+import { onMounted, ref } from 'vue';
 import { UnderlineAction, render } from '../../src/index.js';
 
 const content = ref();

@@ -5,6 +5,7 @@ import Font from './components/Font.vue'
 import Attach from './components/Attach.vue'
 import RenderInfo from './components/RenderInfo.vue'
 import Mock from './components/Mock.vue'
+import Shadow from './components/Shadow.vue'
 </script>
 
 ## 参差不齐的划线
@@ -22,6 +23,10 @@ import Mock from './components/Mock.vue'
 ## Mock underline
 
 <Mock />
+
+## Shadow Dom
+
+<Shadow />
 
 <style>
   .underline {
