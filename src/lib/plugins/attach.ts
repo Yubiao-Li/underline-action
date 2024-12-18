@@ -16,12 +16,12 @@ export class AttachPlugin extends BasePlugin {
     return this.attachMap[attachPosition] || [];
   }
 
-  static process(currentNode: HTMLElement | Text, opt: Options, lastTextNode: Text) {
+  static process(currentNode: HTMLElement | Text, opt: Options) {
     let { getAttachNode } = opt;
     // 找一下有没有文字节点要带上它一起划线
     !getAttachNode && (getAttachNode = () => false);
-    if (lastTextNode && getAttachNode(currentNode, lastTextNode)) {
-      const attachPosition = lastTextNode._wordoffset + lastTextNode.textContent.length;
+    if (this.state.lastTextNode && getAttachNode(currentNode, this.state.lastTextNode)) {
+      const attachPosition = this.state.lastTextNode._wordoffset + this.state.lastTextNode.textContent.length;
       this.attachMap[attachPosition]
         ? this.attachMap[attachPosition].push({ node: currentNode as Text, mockNode: null, quote: 0 })
         : (this.attachMap[attachPosition] = [{ node: currentNode as Text, quote: 0, mockNode: null }]);

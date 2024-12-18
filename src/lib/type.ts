@@ -49,4 +49,5 @@ export interface Options {
   getAttachNode?(cur: HTMLElement | Text, lastTextNode: Text): boolean;
   getRenderInfo?(cur: HTMLElement): object;
   isSpecialNode?(cur: HTMLElement): boolean;
+  shadowNodeWhiteList: string[];
 }

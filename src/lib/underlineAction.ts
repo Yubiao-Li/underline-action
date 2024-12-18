@@ -18,9 +18,13 @@ export function UnderlineAction(opt: Options) {
   let plugins = [RenderInfoPlugin, AttachPlugin, SpecialNodePlugin];
   const state: {
     textNodeArr: Text[];
+    lastTextNode: Text | null;
+    pluginFilterNode: any; // 一个节点被过滤了，那它的子节点也不能成为正文了
   } = {
     // 用来按顺序保存text节点方便后面遍历
     textNodeArr: [],
+    lastTextNode: null,
+    pluginFilterNode: null,
   };
   plugins.forEach(p => (p.state = state));
   // 保存key对应的span列表，方便删除
@@ -109,13 +113,12 @@ export function UnderlineAction(opt: Options) {
         return resolveSpecialNode(textnode, startOffset, endOffset);
       }
       const len = textnode.textContent!.length;
-      let secondNode = textnode,
-        lastTextNode;
+      let secondNode = textnode;
       if (startOffset !== 0) {
         secondNode = splitTextNode(textnode, startOffset);
       }
       if (endOffset !== len) {
-        lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
+        state.lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
       const span = createHighlightSpan();
@@ -235,7 +238,7 @@ export function UnderlineAction(opt: Options) {
         .map((r: Range, index: number) => {
           const item: SplitResult = {
             text: r.toString().replace('\n', ''),
-            rect: rects[index]
+            rect: rects[index],
           };
 
           if (!item.rect) return;
@@ -508,48 +511,51 @@ export function UnderlineAction(opt: Options) {
     return node._wordoffset + offset;
   }
 
-  function computeDomPos() {
-    plugins.forEach(p => p.init(state));
-
-    state.textNodeArr = [];
-    const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
+  function computeDom(dom) {
     if (!dom) return;
-    let offset = 0;
-    let lastTextNode: Text | null = null;
     const treeWalker = document.createTreeWalker(dom, NodeFilter.SHOW_ALL, {
       acceptNode: needFilterNode || (() => NodeFilter.FILTER_ACCEPT),
     });
     let currentNode = treeWalker.currentNode as any;
-    let pluginFilterNode: any; // 一个节点被过滤了，那它的子节点也不能成为正文了
 
     while (currentNode) {
+      const offset = state.textNodeArr.length;
       currentNode._wordoffset = offset;
 
       const isMainText = plugins.reduce((pre, cur) => {
-        return pre && cur.process(currentNode, opt, lastTextNode!);
+        return pre && cur.process(currentNode, opt);
       }, true);
 
       if (isMainText) {
-        if (isTextNode(currentNode) && !pluginFilterNode?.contains(currentNode)) {
+        if ((opt.shadowNodeWhiteList|| []).indexOf(currentNode.tagName) !== -1) {
+          computeDom(currentNode.shadowRoot);
+        } else if (isTextNode(currentNode) && !state.pluginFilterNode?.contains(currentNode)) {
           removeNowrapLinebreak(currentNode);
-          if (lastTextNode) {
+          if (state.lastTextNode) {
             // 做个链表
-            lastTextNode._next = currentNode;
-            currentNode._prev = lastTextNode;
+            state.lastTextNode._next = currentNode;
+            currentNode._prev = state.lastTextNode;
           }
           const wordLen = currentNode.textContent.length;
           const newOffset = offset + wordLen;
           state.textNodeArr.length = newOffset;
           state.textNodeArr.fill(currentNode, offset, newOffset);
-          offset = newOffset;
-          lastTextNode = currentNode;
+          state.lastTextNode = currentNode;
         }
       } else {
-        pluginFilterNode = currentNode;
+        state.pluginFilterNode = currentNode;
       }
       currentNode = treeWalker.nextNode();
     }
+  }
 
+  function computeDomPos() {
+    plugins.forEach(p => p.init(state));
+
+    state.textNodeArr = [];
+    const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
+
+    computeDom(dom);
     return state.textNodeArr;
   }
   computeDomPos();

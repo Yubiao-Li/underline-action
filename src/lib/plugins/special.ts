@@ -4,7 +4,7 @@ import { BasePlugin } from './base';
 
 export class SpecialNodePlugin extends BasePlugin {
   static curSpecialNode: HTMLElement;
-  static process(currentNode: HTMLElement, opt?: Options, lastTextNode?: Text) {
+  static process(currentNode: HTMLElement, opt?: Options) {
     !opt.isSpecialNode && (opt.isSpecialNode = (node: HTMLElement) => node.tagName === 'SUP' || node.tagName === 'SUB');
     if (opt.isSpecialNode(currentNode)) {
       this.curSpecialNode = currentNode;

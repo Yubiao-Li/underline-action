@@ -26,6 +26,13 @@ import Shadow from './components/Shadow.vue'
 
 ## Shadow Dom
 
+::: details
+对于某些需要划线的自定义元素，我们可以用在初始化的时候传入白名单来控制是否需要算入字数以及划线
+|opt|type|
+|-|-|
+|shadowNodeWhiteList|string[]|
+:::
+
 <Shadow />
 
 <style>

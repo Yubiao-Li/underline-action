@@ -1,6 +1,9 @@
 <template>
   <div ref="content">
-    <mp-common-product data-title="哈哈哈哈看到就杀了科技大厦路口见"></mp-common-product>
+    大家撒开了大家撒了看见打了卡<mp-common-product data-title="哈哈哈哈看到就杀了科技大厦路口见"></mp-common-product>
+    <p>
+      有理打撒的健康撒来得及阿斯利康多久啊我理解
+    </p>
   </div>
 </template>
 
@@ -28,8 +31,9 @@ customElements.define('mp-common-product', AAA);
 onMounted(() => {
   const underlineAction = UnderlineAction({
     selector: content.value,
+    shadowNodeWhiteList: ['MP-COMMON-PRODUCT']
   });
 
-  underlineAction.insertSpanInRange(0, 5);
+  underlineAction.insertSpanInRange(0, 20);
 });
 </script>

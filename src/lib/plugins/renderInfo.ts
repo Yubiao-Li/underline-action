@@ -13,7 +13,7 @@ export class RenderInfoPlugin extends BasePlugin {
   static init(state: any): void {
     BasePlugin.init(state);
   }
-  static process(currentNode: HTMLElement, opt?: Options, lastTextNode?: Text) {
+  static process(currentNode: HTMLElement, opt?: Options) {
     currentNode._renderInfo = {
       type: currentNode.tagName || 'text',
       ...(opt.getRenderInfo ? opt.getRenderInfo(currentNode) : {}),

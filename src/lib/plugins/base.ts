@@ -7,7 +7,7 @@ export class BasePlugin {
     this.state = state;
   }
 
-  static process(currentNode: HTMLElement, opt?: Options, lastTextNode?: Text): Boolean {
+  static process(currentNode: HTMLElement, opt?: Options): Boolean {
     return true;
   }
 
