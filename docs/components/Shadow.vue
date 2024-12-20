@@ -25,7 +25,9 @@ class AAA extends HTMLElement {
   }
 }
 
-customElements.define('mp-common-product', AAA);
+if (!customElements.get('mp-common-product')) {
+  customElements.define('mp-common-product', AAA);
+}
 onMounted(() => {
   const underlineAction = UnderlineAction({
     selector: content.value,

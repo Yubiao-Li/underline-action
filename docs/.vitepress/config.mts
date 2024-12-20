@@ -1,5 +1,4 @@
 import { defineConfig } from 'vitepress';
-import vue from '@vitejs/plugin-vue';
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -7,6 +6,13 @@ export default defineConfig({
   description: 'A VitePress Site',
   markdown: {
     cache: false,
+  },
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement: tag => tag === 'mp-common-product'
+      }
+    }
   },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
