@@ -1,4 +1,4 @@
-# Underline Action playgroun
+# Underline Action playground
 
 <script setup>
 import Font from './components/Font.vue'
