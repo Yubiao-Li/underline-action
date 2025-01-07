@@ -15,7 +15,6 @@ function defaultGetKeyByRange({ start, end }) {
 export function UnderlineAction(opt: Options) {
   let { getKeyByRange, tag, selector, needFilterNode } = opt;
   const _getKeyByRange = getKeyByRange ? getKeyByRange : defaultGetKeyByRange;
-  let plugins = [RenderInfoPlugin, AttachPlugin, SpecialNodePlugin];
   const state: {
     textNodeArr: Text[];
     lastTextNode: Text | null;
@@ -26,7 +25,8 @@ export function UnderlineAction(opt: Options) {
     lastTextNode: null,
     pluginFilterNode: null,
   };
-  plugins.forEach(p => (p.state = state));
+  let plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state)];
+  plugins.forEach(p => (p.instance = this));
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
@@ -527,7 +527,7 @@ export function UnderlineAction(opt: Options) {
       }, true);
 
       if (isMainText) {
-        if ((opt.shadowNodeWhiteList|| []).indexOf(currentNode.tagName) !== -1) {
+        if ((opt.shadowNodeWhiteList || []).indexOf(currentNode.tagName) !== -1) {
           computeDom(currentNode.shadowRoot);
         } else if (isTextNode(currentNode) && !state.pluginFilterNode?.contains(currentNode)) {
           removeNowrapLinebreak(currentNode);
@@ -550,8 +550,6 @@ export function UnderlineAction(opt: Options) {
   }
 
   function computeDomPos() {
-    plugins.forEach(p => p.init(state));
-
     state.textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
 
@@ -574,7 +572,7 @@ export function UnderlineAction(opt: Options) {
     getOffset,
   };
   plugins.forEach(p => {
-    p.exportFuncs.forEach(f => (exportFuncs[f] = p[f]));
+    p.exportFuncs.forEach(f => (exportFuncs[f] = p[f].bind(p)));
   });
 
   return exportFuncs;

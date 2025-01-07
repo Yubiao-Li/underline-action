@@ -1,15 +1,20 @@
 import { Options } from '../type';
 
 export class BasePlugin {
-  static exportFuncs: string[] = [];
-  static state: any;
-  static init(state: any) {
+  exportFuncs: string[] = [];
+  state: any;
+  instance: any;
+  constructor(state: any) {
     this.state = state;
   }
 
-  static process(currentNode: HTMLElement, opt?: Options): Boolean {
+  process(currentNode: HTMLElement, opt?: Options): Boolean {
     return true;
   }
 
-  static afterResolveNode(curProcessTextNode: Text, start: number, end: number) {}
+  afterResolveNode(curProcessTextNode: Text, start: number, end: number) {}
+
+  getAttachNode(currentNode: HTMLElement) {
+    return [];
+  }
 }

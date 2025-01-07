@@ -4,16 +4,12 @@ import { AttachPlugin } from './attach';
 import { BasePlugin } from './base';
 // import { RendererOptions} from '../reconciler/index.js';
 export class RenderInfoPlugin extends BasePlugin {
-  static tableCol: number;
-  static tableRow: number;
-  static tableEle: Element;
-  static colspan: string;
-  static exportFuncs: string[] = ['getRenderInfoByStartEnd', 'render'];
-  static state: any;
-  static init(state: any): void {
-    BasePlugin.init(state);
-  }
-  static process(currentNode: HTMLElement, opt?: Options) {
+  tableCol: number;
+  tableRow: number;
+  tableEle: Element;
+  colspan: string;
+  exportFuncs: string[] = ['getRenderInfoByStartEnd'];
+  process(currentNode: HTMLElement, opt?: Options) {
     currentNode._renderInfo = {
       type: currentNode.tagName || 'text',
       ...(opt.getRenderInfo ? opt.getRenderInfo(currentNode) : {}),
@@ -38,10 +34,10 @@ export class RenderInfoPlugin extends BasePlugin {
     return true;
   }
 
-  static getRenderInfoByStartEnd(start: number, end: number): RenderInfo[] {
+  getRenderInfoByStartEnd(start: number, end: number): RenderInfo[] {
     if (end <= start) return [];
-    const startNode = RenderInfoPlugin.state.textNodeArr[start];
-    const endNode = RenderInfoPlugin.state.textNodeArr[end - 1];
+    const startNode = this.state.textNodeArr[start];
+    const endNode = this.state.textNodeArr[end - 1];
     if (!startNode || !endNode) return [];
     const result = [];
     // 说明不止由startNode组成text
@@ -102,7 +98,7 @@ export class RenderInfoPlugin extends BasePlugin {
       );
       getRenderInfo(curNode, text);
       const pos = curNode._wordoffset + curNode.textContent.length;
-      const attachs = AttachPlugin.attachMap[pos];
+      const attachs = this.state.attachMap[pos];
       if (pos < end && attachs) {
         attachs.forEach(attach => {
           const { node } = attach;
