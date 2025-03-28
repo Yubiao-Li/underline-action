@@ -24,6 +24,8 @@ function findBr(dom1: Node, dom2: Node) {
 export function needWrap(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
 
+  if (inSameLine(dom1, dom2)) return false;
+
   return findBlock(dom1, dom2) || findBlock(dom2, dom1) || findBr(dom1, dom2) || findBr(dom2, dom1);
 }
 
