@@ -7,6 +7,7 @@ import { RenderInfoPlugin } from './plugins/renderInfo';
 import { isTextNode } from './utils';
 import { AttachPlugin } from './plugins/attach';
 import { SpecialNodePlugin } from './plugins/special';
+import { BasePlugin } from './plugins/base';
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
@@ -25,8 +26,7 @@ export function UnderlineAction(opt: Options) {
     lastTextNode: null,
     pluginFilterNode: null,
   };
-  let plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state)];
-  plugins.forEach(p => (p.instance = this));
+  let plugins: BasePlugin[];
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
@@ -550,6 +550,8 @@ export function UnderlineAction(opt: Options) {
   }
 
   function computeDomPos() {
+    plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state)];
+    plugins.forEach(p => (p.instance = this));
     state.textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
 

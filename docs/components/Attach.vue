@@ -32,9 +32,21 @@ onMounted(() => {
       return false;
     },
   });
-  const spans = underlineAction.insertSpanInRange(
+  underlineAction.computeDomPos();
+  underlineAction.insertSpanInRange(
     0,
     3,
+    {
+      className: 'underline',
+    },
+    true
+  );
+
+  underlineAction.computeDomPos();
+
+  underlineAction.insertSpanInRange(
+    5,
+    6,
     {
       className: 'underline',
     },
