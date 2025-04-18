@@ -1,10 +1,16 @@
 import { Options } from '../type';
-import { isTextNode } from '../utils';
+import { createHighlightSpan, isTextNode } from '../utils';
 import { BasePlugin } from './base';
 
+function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number, props: any, opt: Options) {
+  const highlightSpan = createHighlightSpan(opt.tag, props);
+  textnode._special.parentElement!.insertBefore(highlightSpan, textnode._special);
+  highlightSpan.appendChild(textnode._special);
+  return highlightSpan;
+}
 export class SpecialNodePlugin extends BasePlugin {
-  static curSpecialNode: HTMLElement;
-  static process(currentNode: HTMLElement, opt?: Options) {
+  curSpecialNode: HTMLElement;
+  process(currentNode: HTMLElement, opt?: Options) {
     !opt.isSpecialNode && (opt.isSpecialNode = (node: HTMLElement) => node.tagName === 'SUP' || node.tagName === 'SUB');
     if (opt.isSpecialNode(currentNode)) {
       this.curSpecialNode = currentNode;
@@ -14,6 +20,16 @@ export class SpecialNodePlugin extends BasePlugin {
       currentNode._special = this.curSpecialNode;
     }
 
-    return true
+    return true;
+  }
+
+  resolveNode(currNode: Text, startOffset: number, endOffset: number, props: any, opt: Options) {
+    if (currNode._special) {
+      // 连续的只要resolve一次就好
+      while (currNode._next && currNode._next._special === currNode._special) {
+        currNode = currNode._next;
+      }
+      return resolveSpecialNode(currNode, startOffset, endOffset, props, opt);
+    }
   }
 }

@@ -6,6 +6,7 @@ import Attach from './components/Attach.vue'
 import RenderInfo from './components/RenderInfo.vue'
 import Mock from './components/Mock.vue'
 import Shadow from './components/Shadow.vue'
+import Content from './components/Content.vue'
 </script>
 
 ## 参差不齐的划线
@@ -13,6 +14,8 @@ import Shadow from './components/Shadow.vue'
 <Font />
 
 ## 附加节点
+
+> 附加的节点不会计入总数
 
 <Attach />
 
@@ -34,6 +37,22 @@ import Shadow from './components/Shadow.vue'
 :::
 
 <Shadow />
+
+## 特殊的正文节点
+
+::: details
+对于某些特别的叶子节点，我们可能也希望算入总字数，此时需要告知这个节点的长度和文本
+|opt|type|
+|-|-|
+|getContentNodeInfo|(cur: HTMLElement) => ContentNodeInfo | null|
+
+|interface|type|
+|-|-|
+|ContentNodeInfo|{ len: number\; text: string; } | null|
+
+:::
+
+<Content />
 
 <style>
   .underline, mp-common-product::part(underline) {

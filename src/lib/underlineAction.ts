@@ -4,10 +4,11 @@ import { findFirstParent } from './findParent';
 import { findAllLines } from './splitRange';
 import { Options, SplitResult } from './type';
 import { RenderInfoPlugin } from './plugins/renderInfo';
-import { isTextNode } from './utils';
+import { createHighlightSpan, isTextNode } from './utils';
 import { AttachPlugin } from './plugins/attach';
 import { SpecialNodePlugin } from './plugins/special';
 import { BasePlugin } from './plugins/base';
+import { ContentNodePlugin } from './plugins/content';
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
@@ -18,12 +19,12 @@ export function UnderlineAction(opt: Options) {
   const _getKeyByRange = getKeyByRange ? getKeyByRange : defaultGetKeyByRange;
   const state: {
     textNodeArr: Text[];
-    lastTextNode: Text | null;
+    lastContentNode: Text | null;
     pluginFilterNode: any; // 一个节点被过滤了，那它的子节点也不能成为正文了
   } = {
     // 用来按顺序保存text节点方便后面遍历
     textNodeArr: [],
-    lastTextNode: null,
+    lastContentNode: null,
     pluginFilterNode: null,
   };
   let plugins: BasePlugin[];
@@ -33,13 +34,6 @@ export function UnderlineAction(opt: Options) {
 
   function insertSpanInRange(start: number, end: number, props: any = {}, temp = false) {
     let spans: HTMLSpanElement[] = [];
-    function createHighlightSpan() {
-      const span = document.createElement(tag || 'span');
-      span.className = 'underline';
-      spans.push(span);
-      Object.keys(props).forEach(key => (span[key] = props[key]));
-      return span;
-    }
 
     function splitTextNode(textnode: Text, offset: number) {
       if (offset === 0) {
@@ -71,57 +65,29 @@ export function UnderlineAction(opt: Options) {
       return behindTextNode;
     }
 
-    function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number) {
-      // 先不做分割special node，因为实现起来太复杂了
-      const highlightSpan = createHighlightSpan();
-      textnode._special.parentElement!.insertBefore(highlightSpan, textnode._special);
-      highlightSpan.appendChild(textnode._special);
-
-      // const len = textnode.textContent!.length;
-      // const parentNode = textnode.parentElement!;
-      // const firstNode = parentNode.cloneNode();
-      // const secondNode = parentNode.cloneNode();
-      // const lastNode = parentNode.cloneNode();
-      // let lastTextNode;
-      // let secondTextNode = textnode;
-      // if (startOffset !== 0) {
-      //   secondTextNode = splitTextNode(textnode, startOffset);
-      //   firstNode.appendChild(textnode);
-      //   parentNode.parentElement!.insertBefore(firstNode, parentNode);
-      // }
-      // if (endOffset !== len) {
-      //   lastTextNode = splitTextNode(secondTextNode, endOffset - startOffset);
-      //   lastNode.appendChild(lastTextNode);
-      // }
-      // secondNode.appendChild(secondTextNode);
-      // highlightSpan.appendChild(secondNode);
-      // parentNode.parentElement!.insertBefore(highlightSpan, parentNode);
-      // if (lastTextNode) {
-      //   parentNode.parentElement!.insertBefore(lastNode, parentNode);
-      // }
-      // parentNode.remove();
-      return textnode;
-    }
-
     // 分割textnode，把中间的取出来用span包住，并更新数组和链表
     function resolveTextNode(textnode: Text, startOffset: number, endOffset: number) {
-      if (textnode._special) {
-        // 连续的只要resolve一次就好
-        while (textnode._next && textnode._next._special === textnode._special) {
-          textnode = textnode._next;
+      // 遍历插件，获取第一个有效的处理结果
+      for (const plugin of plugins) {
+        const result = plugin.resolveNode(textnode, startOffset, endOffset, props, opt);
+        if (result) {
+          spans.push(result);
+          return result;  // 直接返回插件处理后的结果
         }
-        return resolveSpecialNode(textnode, startOffset, endOffset);
       }
+      
       const len = textnode.textContent!.length;
       let secondNode = textnode;
       if (startOffset !== 0) {
         secondNode = splitTextNode(textnode, startOffset);
       }
       if (endOffset !== len) {
-        state.lastTextNode = splitTextNode(secondNode, endOffset - startOffset);
+        state.lastContentNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
-      const span = createHighlightSpan();
+      const span = createHighlightSpan(tag, props);
+      spans.push(span);
+
       secondNode.parentElement!.insertBefore(span, secondNode);
       span.appendChild(secondNode);
 
@@ -430,7 +396,10 @@ export function UnderlineAction(opt: Options) {
       if (end <= start) return '';
       const startNode = state.textNodeArr[start];
       const endNode = state.textNodeArr[end - 1];
-      if (!startNode || !endNode) return '';
+      if (!startNode || !endNode) {
+        console.warn('超出边界的offset');
+        return '';
+      };
       let text = '';
       let curNode: Text | null = null;
       while (curNode !== endNode) {
@@ -440,13 +409,15 @@ export function UnderlineAction(opt: Options) {
           curNode = curNode._next;
           if (needWrap(curNode, curNode._prev)) {
             text += '\n';
-          } else if (inSameLine(curNode, curNode._prev)) {
-            text += ' ';
           }
         }
-        const sliceStart = Math.max(0, start - curNode._wordoffset);
-        const sliceEnd = Math.min(end - curNode._wordoffset, curNode.textContent!.length);
-        text += curNode._text!.slice(sliceStart, sliceEnd);
+        if (isTextNode(curNode)) {
+          const sliceStart = Math.max(0, start - curNode._wordoffset);
+          const sliceEnd = Math.min(end - curNode._wordoffset, curNode._text!.length);
+          text += curNode._text!.slice(sliceStart, sliceEnd);
+        } else {
+          text += curNode._text;
+        }
       }
 
       return text;
@@ -531,16 +502,16 @@ export function UnderlineAction(opt: Options) {
           computeDom(currentNode.shadowRoot);
         } else if (isTextNode(currentNode) && !state.pluginFilterNode?.contains(currentNode)) {
           removeNowrapLinebreak(currentNode);
-          if (state.lastTextNode) {
+          if (state.lastContentNode) {
             // 做个链表
-            state.lastTextNode._next = currentNode;
-            currentNode._prev = state.lastTextNode;
+            state.lastContentNode._next = currentNode;
+            currentNode._prev = state.lastContentNode;
           }
           const wordLen = currentNode.textContent.length;
           const newOffset = offset + wordLen;
           state.textNodeArr.length = newOffset;
           state.textNodeArr.fill(currentNode, offset, newOffset);
-          state.lastTextNode = currentNode;
+          state.lastContentNode = currentNode;
         }
       } else {
         state.pluginFilterNode = currentNode;
@@ -550,7 +521,7 @@ export function UnderlineAction(opt: Options) {
   }
 
   function computeDomPos() {
-    plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state)];
+    plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state), new ContentNodePlugin(state)];
     plugins.forEach(p => (p.instance = this));
     state.textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;

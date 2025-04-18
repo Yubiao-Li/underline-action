@@ -46,8 +46,14 @@ export interface Options {
   tag?: string;
   selector: string | HTMLElement;
   needFilterNode?: (node: Node) => number;
-  getAttachNode?(cur: HTMLElement | Text, lastTextNode: Text): boolean;
+  getAttachNode?(cur: HTMLElement | Text, lastContentNode: Text): boolean;
   getRenderInfo?(cur: HTMLElement): object;
   isSpecialNode?(cur: HTMLElement): boolean;
+  
+  // 特殊的正文节点
+  getContentNodeInfo?(cur: HTMLElement): {
+    text: string;
+    len: number;
+  } | null;
   shadowNodeWhiteList: string[];
 }
