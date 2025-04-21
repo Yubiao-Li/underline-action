@@ -10,7 +10,7 @@
         class="wx_img"
         src="https://res.wx.qq.com/t/wx_fed/we-emoji/res/v1.3.10/assets/Expression/Expression_42@2x.png"
         alt=""
-      />
+      />电视剧爱迪生
     </div>
     <p>text: {{ text }}</p>
     <p>renderInfo: {{ renderInfo }}</p>
@@ -40,9 +40,10 @@ onMounted(() => {
     },
   });
 
-  underlineAction.insertSpanInRange(0, 2)
+  // underlineAction.insertSpanInRange(0, 3)
+  underlineAction.mockUnderline(0, 3)
 
-  text.value = underlineAction.getTextByStartEnd(0, 2);
-  renderInfo.value = underlineAction.getRenderInfoByStartEnd(0, 2);
+  text.value = underlineAction.getTextByStartEnd(0, 3);
+  renderInfo.value = underlineAction.getRenderInfoByStartEnd(0, 3);
 });
 </script>

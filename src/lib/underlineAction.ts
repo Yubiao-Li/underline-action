@@ -72,7 +72,7 @@ export function UnderlineAction(opt: Options) {
         const result = plugin.resolveNode(textnode, startOffset, endOffset, props, opt);
         if (result) {
           spans.push(result);
-          return result;  // 直接返回插件处理后的结果
+          return textnode;  // 直接返回插件处理后的结果
         }
       }
       

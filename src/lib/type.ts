@@ -21,6 +21,11 @@ export interface RenderInfo extends Record<string, string | number | undefined> 
   textContent?: string;
 }
 
+export interface ContentInfo {
+  text: string;
+  len: number;
+}
+
 declare global {
   interface Text {
     _prev: Text;
@@ -29,6 +34,7 @@ declare global {
     _renderInfo: RenderInfo;
     _text: string;
     _special: HTMLElement;
+    _contentInfo: ContentInfo;
   }
   // interface Node {
   // }
@@ -51,9 +57,6 @@ export interface Options {
   isSpecialNode?(cur: HTMLElement): boolean;
   
   // 特殊的正文节点
-  getContentNodeInfo?(cur: HTMLElement): {
-    text: string;
-    len: number;
-  } | null;
+  getContentNodeInfo?(cur: HTMLElement): ContentInfo | null;
   shadowNodeWhiteList: string[];
 }

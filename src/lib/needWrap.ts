@@ -14,8 +14,8 @@ function findBlock(dom1: Node, dom2: Node) {
 function findBr(dom1: Node, dom2: Node) {
   // 判断两个节点之间是否有br节点
   const range = document.createRange();
-  range.setStart(dom2, 0);
-  range.setEnd(dom1, 1);
+  range.setStartBefore(dom2);
+  range.setEndAfter(dom1);
   const div = document.createElement('div');
   div.appendChild(range.cloneContents());
   return div.getElementsByTagName('br').length !== 0;
@@ -24,9 +24,12 @@ function findBr(dom1: Node, dom2: Node) {
 export function needWrap(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
 
-  if (inSameLine(dom1, dom2)) return false;
+  if (findBlock(dom1, dom2) || findBlock(dom2, dom1) || findBr(dom1, dom2) || findBr(dom2, dom1)) {
+    if (inSameLine(dom1, dom2)) return false;
+    return true;
+  }
 
-  return findBlock(dom1, dom2) || findBlock(dom2, dom1) || findBr(dom1, dom2) || findBr(dom2, dom1);
+  return false;
 }
 
 export function inSameLine(dom1: Node, dom2: Node) {
