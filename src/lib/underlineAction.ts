@@ -21,11 +21,13 @@ export function UnderlineAction(opt: Options) {
     textNodeArr: Text[];
     lastContentNode: Text | null;
     pluginFilterNode: any; // 一个节点被过滤了，那它的子节点也不能成为正文了
+    mutationObserver: MutationObserver;
   } = {
     // 用来按顺序保存text节点方便后面遍历
     textNodeArr: [],
     lastContentNode: null,
     pluginFilterNode: null,
+    mutationObserver: null,
   };
   let plugins: BasePlugin[];
   // 保存key对应的span列表，方便删除
@@ -72,10 +74,10 @@ export function UnderlineAction(opt: Options) {
         const result = plugin.resolveNode(textnode, startOffset, endOffset, props, opt);
         if (result) {
           spans.push(result);
-          return textnode;  // 直接返回插件处理后的结果
+          return textnode; // 直接返回插件处理后的结果
         }
       }
-      
+
       const len = textnode.textContent!.length;
       let secondNode = textnode;
       if (startOffset !== 0) {
@@ -399,7 +401,7 @@ export function UnderlineAction(opt: Options) {
       if (!startNode || !endNode) {
         console.warn('超出边界的offset');
         return '';
-      };
+      }
       let text = '';
       let curNode: Text | null = null;
       while (curNode !== endNode) {
@@ -521,12 +523,50 @@ export function UnderlineAction(opt: Options) {
   }
 
   function computeDomPos() {
-    plugins = [new RenderInfoPlugin(state), new AttachPlugin(state), new SpecialNodePlugin(state), new ContentNodePlugin(state)];
+    state.mutationObserver?.disconnect();
+    plugins = [
+      new RenderInfoPlugin(state),
+      new AttachPlugin(state),
+      new SpecialNodePlugin(state),
+      new ContentNodePlugin(state),
+    ];
     plugins.forEach(p => (p.instance = this));
     state.textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
 
     computeDom(dom);
+
+    state.mutationObserver = new MutationObserver(mutations => {
+      // 非遍历阶段不要记录上一个节点
+      state.lastContentNode = null;
+      mutations.forEach(mutation => {
+        if (
+          mutation.type === 'childList' &&
+          mutation.addedNodes.length > 0 &&
+          mutation.addedNodes.length === mutation.removedNodes.length
+        ) {
+          // 只处理替换场景
+          const oldNode = mutation.removedNodes[0] as Text;
+          const newNode = mutation.addedNodes[0] as HTMLElement;
+          if (oldNode._prev || oldNode._next) {
+            // 说明是正文节点
+            newNode._wordoffset = oldNode._wordoffset;
+            newNode._prev = oldNode._prev;
+            oldNode._prev._next = newNode;
+            newNode._next = oldNode._next;
+            plugins.forEach(p => {
+              if (p.process) {
+                p.process(newNode, opt);
+              }
+            });
+          }
+        }
+      });
+    });
+    state.mutationObserver.observe(dom, {
+      childList: true,
+      subtree: true
+    });
     return state.textNodeArr;
   }
   computeDomPos();

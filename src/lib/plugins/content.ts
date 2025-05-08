@@ -14,7 +14,7 @@ export class ContentNodePlugin extends BasePlugin {
         currNode._prev = this.state.lastContentNode;
       }
       const newOffset = currNode._wordoffset + len;
-      this.state.textNodeArr.length = newOffset;
+      this.state.textNodeArr.length = Math.max(newOffset, this.state.textNodeArr.length);
       this.state.textNodeArr.fill(currNode, currNode._wordoffset, newOffset);
       this.state.lastContentNode = currNode;
     }
