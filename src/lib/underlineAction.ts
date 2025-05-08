@@ -554,6 +554,9 @@ export function UnderlineAction(opt: Options) {
             newNode._prev = oldNode._prev;
             oldNode._prev._next = newNode;
             newNode._next = oldNode._next;
+            if (oldNode._next) {
+              oldNode._next._prev = newNode;
+            }
             plugins.forEach(p => {
               if (p.process) {
                 p.process(newNode, opt);
