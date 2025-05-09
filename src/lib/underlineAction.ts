@@ -551,10 +551,12 @@ export function UnderlineAction(opt: Options) {
           if (oldNode._prev || oldNode._next) {
             // 说明是正文节点
             newNode._wordoffset = oldNode._wordoffset;
-            newNode._prev = oldNode._prev;
-            oldNode._prev._next = newNode;
-            newNode._next = oldNode._next;
+            if (oldNode._prev) {
+              newNode._prev = oldNode._prev;
+              oldNode._prev._next = newNode;
+            }
             if (oldNode._next) {
+              newNode._next = oldNode._next;
               oldNode._next._prev = newNode;
             }
             plugins.forEach(p => {
