@@ -568,10 +568,12 @@ export function UnderlineAction(opt: Options) {
         }
       });
     });
-    state.mutationObserver.observe(dom, {
-      childList: true,
-      subtree: true
-    });
+    if (dom) {
+      state.mutationObserver.observe(dom, {
+        childList: true,
+        subtree: true
+      });
+    }
     return state.textNodeArr;
   }
   computeDomPos();
