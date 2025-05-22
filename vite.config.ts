@@ -25,6 +25,16 @@ export default defineConfig(({ command }) => {
             // preserveModules: true,
             exports: 'named',
           },
+          {
+            format: 'umd',
+            name: 'UnderlineAction', // 指定全局变量名
+            dir: 'dist',
+            entryFileNames: '[name].umd.js', // 单独命名UMD文件
+            globals: {
+              // 如果有外部依赖，在这里配置全局变量名
+              // 例如: 'vue': 'Vue'
+            }
+          }
         ],
       },
       lib: {
