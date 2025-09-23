@@ -1,14 +1,15 @@
-import { getScaleByDom } from './getScaleByDom';
-import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
-import { findFirstParent } from './findParent';
-import { findAllLines } from './splitRange';
 import { Options, SplitResult } from './type';
-import { RenderInfoPlugin } from './plugins/renderInfo';
 import { createHighlightSpan, isTextNode } from './utils';
+import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
+
 import { AttachPlugin } from './plugins/attach';
-import { SpecialNodePlugin } from './plugins/special';
 import { BasePlugin } from './plugins/base';
 import { ContentNodePlugin } from './plugins/content';
+import { RenderInfoPlugin } from './plugins/renderInfo';
+import { SpecialNodePlugin } from './plugins/special';
+import { findAllLines } from './splitRange';
+import { findFirstParent } from './findParent';
+import { getScaleByDom } from './getScaleByDom';
 
 function defaultGetKeyByRange({ start, end }) {
   return `${start}-${end}`;
@@ -74,6 +75,7 @@ export function UnderlineAction(opt: Options) {
         const result = plugin.resolveNode(textnode, startOffset, endOffset, props, opt);
         if (result) {
           spans.push(result);
+          result._wordoffset = textnode._wordoffset + startOffset
           return textnode; // 直接返回插件处理后的结果
         }
       }
@@ -88,6 +90,7 @@ export function UnderlineAction(opt: Options) {
       }
 
       const span = createHighlightSpan(tag, props);
+      span._wordoffset = textnode._wordoffset + startOffset
       spans.push(span);
 
       secondNode.parentElement!.insertBefore(span, secondNode);
