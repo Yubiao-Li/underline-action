@@ -58,5 +58,5 @@ export interface Options {
   
   // 特殊的正文节点
   getContentNodeInfo?(cur: HTMLElement): ContentInfo | null;
-  shadowNodeWhiteList: string[];
+  shadowNodeWhiteList?: string[];
 }
