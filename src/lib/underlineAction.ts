@@ -527,6 +527,7 @@ export function UnderlineAction(opt: Options) {
 
   function computeDomPos() {
     state.mutationObserver?.disconnect();
+    state.lastContentNode = null;
     plugins = [
       new RenderInfoPlugin(state),
       new AttachPlugin(state),
