@@ -1,19 +1,17 @@
-# Underline Action playground
+# 换行判断验证
 
 <script setup>
-import Font from './components/Font.vue'
-import Attach from './components/Attach.vue'
+import NeedWrap from './components/NeedWrap.vue'
 </script>
 
-## 参差不齐的划线
+::: details
+修复了 `needWrap.ts` 中三个函数的逻辑，确保只有当容器是最近公共父节点时才判定换行/同行：
+- `findBlock`：block/table-row 容器
+- `inSameLine` (flex)：flex 容器
+- `inSameLine` (TR)：TR 元素
+:::
 
-<Font />
-
-## 附加节点
-
-> 附加的节点不会计入总数
-
-<Attach />
+<NeedWrap />
 
 <style>
   .underline, mp-common-product::part(underline) {
@@ -27,17 +25,15 @@ import Attach from './components/Attach.vue'
     overflow: hidden;
   }
 
-  .attach_container {
-    position: relative;
-  }
-
   #js_content {
     width: 900px;
   }
 
-  .attach_node {
-    position: absolute;
-    bottom: 0;
-    right: 0
+  tr {
+    width: 100%;
+    text-align: justify;
+  }
+  td {
+    white-space: pre-wrap;
   }
 </style>

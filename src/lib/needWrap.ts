@@ -1,12 +1,24 @@
 import { findFirstParent } from './findParent.js';
 
 function findBlock(dom1: Node, dom2: Node) {
-  // dom1的第一个block父节点不是dom2的父节点，说明需要换行
-  const parentBlockNode = findFirstParent(dom1, dom => {
-    return getComputedStyle(dom).display === 'block' || getComputedStyle(dom).display === 'table-row';
-  });
-  if (parentBlockNode && !parentBlockNode.contains(dom2)) {
-    return true;
+  // 找到两个节点的最近公共父节点
+  let parent1: Node | null = dom1.parentNode;
+  while (parent1) {
+    if (parent1.contains(dom2)) {
+      // 找到公共父节点后，检查 dom1 到公共父节点路径上是否经过了 block 子节点
+      let cur: Node | null = dom1;
+      while (cur && cur !== parent1) {
+        if (cur.nodeType === Node.ELEMENT_NODE) {
+          const style = getComputedStyle(cur as Element);
+          if (style.display === 'block' || style.display === 'table-row') {
+            return true;
+          }
+        }
+        cur = cur.parentNode;
+      }
+      break;
+    }
+    parent1 = parent1.parentNode;
   }
   return false;
 }
@@ -34,20 +46,28 @@ export function needWrap(dom1: Node, dom2: Node) {
 
 export function inSameLine(dom1: Node, dom2: Node) {
   if (!dom1 || !dom2) return false;
-  // 同一个flex里面
-  const parentFlexNode = findFirstParent(dom1, dom => {
-    return getComputedStyle(dom).display === 'flex';
-  });
-  if (parentFlexNode && parentFlexNode.contains(dom2) && getComputedStyle(parentFlexNode).flexDirection === 'row') {
-    return true;
+  
+  // 找到两个节点的最近公共父节点
+  let parent1: Node | null = dom1.parentNode;
+  while (parent1) {
+    if (parent1.contains(dom2)) {
+      // 检查这个公共父节点是否是 flex 容器且方向为 row
+      if (parent1.nodeType === Node.ELEMENT_NODE) {
+        const style = getComputedStyle(parent1 as Element);
+        if (style.display === 'flex' && style.flexDirection === 'row') {
+          return true;
+        }
+      }
+      
+      // 检查这个公共父节点是否是 TR
+      if (parent1.nodeType === Node.ELEMENT_NODE && (parent1 as Element).tagName === 'TR') {
+        return true;
+      }
+      break;
+    }
+    parent1 = parent1.parentNode;
   }
-  // 同一个tr里面
-  const parentTrNode = findFirstParent(dom1, dom => {
-    return dom.tagName === 'TR';
-  });
-  if (parentTrNode && parentTrNode.contains(dom2)) {
-    return true;
-  }
+  
   return false;
 }
 

@@ -1,19 +1,17 @@
-# Underline Action playground
+# 自定义
 
 <script setup>
-import Font from './components/Font.vue'
-import Attach from './components/Attach.vue'
+import RenderInfo from './components/RenderInfo.vue'
+import Mock from './components/Mock.vue'
 </script>
 
-## 参差不齐的划线
+## 自定义渲染
 
-<Font />
+<RenderInfo />
 
-## 附加节点
+## Mock underline
 
-> 附加的节点不会计入总数
-
-<Attach />
+<Mock />
 
 <style>
   .underline, mp-common-product::part(underline) {
@@ -27,17 +25,7 @@ import Attach from './components/Attach.vue'
     overflow: hidden;
   }
 
-  .attach_container {
-    position: relative;
-  }
-
   #js_content {
     width: 900px;
-  }
-
-  .attach_node {
-    position: absolute;
-    bottom: 0;
-    right: 0
   }
 </style>

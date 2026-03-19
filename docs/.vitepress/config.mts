@@ -23,8 +23,13 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Examples',
-        items: [{ text: 'Underline Action', link: '/underline-action' }],
+        text: 'Playground',
+        items: [
+          { text: '基础划线', link: '/underline-action' },
+          { text: '自定义', link: '/custom' },
+          { text: '特殊场景', link: '/special' },
+          { text: '换行验证', link: '/need-wrap' },
+        ],
       },
     ],
 
