@@ -109,11 +109,12 @@ export function UnderlineAction(opt: Options) {
       let curProcessTextNode = startTextNode;
       if (startTextNode === endTextNode) {
         // 如果是同一段，只需要分解一个节点就好了
-        resolveTextNode(
+        curProcessTextNode = resolveTextNode(
           curProcessTextNode,
           start - curProcessTextNode._wordoffset,
           end - curProcessTextNode._wordoffset
         );
+        plugins.forEach(p => p.afterResolveNode(curProcessTextNode, start, end));
       } else {
         // 如果是不同段，需要一直遍历到最后一个节点，全部分割一遍
         do {

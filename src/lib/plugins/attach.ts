@@ -1,5 +1,5 @@
 import { Attach, Options } from '../type';
-import { isTextNode } from '../utils';
+
 import { BasePlugin } from './base';
 
 export class AttachPlugin extends BasePlugin {
@@ -33,7 +33,7 @@ export class AttachPlugin extends BasePlugin {
   afterResolveNode(curProcessTextNode: Text, start: number, end: number): void {
     const pos = curProcessTextNode._wordoffset + curProcessTextNode.textContent.length;
     const attachs = this.state.attachMap[pos];
-    if (pos < end && attachs) {
+    if (pos <= end && attachs) {
       attachs.forEach((attach: Attach) => {
         const { node } = attach;
         curProcessTextNode.parentElement.appendChild(node);
