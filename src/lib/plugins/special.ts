@@ -1,6 +1,7 @@
-import { Options } from '../type';
 import { createHighlightSpan, isTextNode } from '../utils';
+
 import { BasePlugin } from './base';
+import { Options } from '../type';
 
 function resolveSpecialNode(textnode: Text, startOffset: number, endOffset: number, props: any, opt: Options) {
   const highlightSpan = createHighlightSpan(opt.tag, props);

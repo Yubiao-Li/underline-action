@@ -1,5 +1,5 @@
 import { Options, SplitResult } from './type';
-import { createHighlightSpan, isTextNode } from './utils';
+import { createHighlightSpan, isInSvgText, isTextNode } from './utils';
 import { inSameLine, needWrap, removeNowrapLinebreak } from './needWrap';
 
 import { AttachPlugin } from './plugins/attach';
@@ -89,7 +89,8 @@ export function UnderlineAction(opt: Options) {
         state.lastContentNode = splitTextNode(secondNode, endOffset - startOffset);
       }
 
-      const span = createHighlightSpan(tag, props);
+      const resolvedTag = isInSvgText(secondNode) ? 'tspan' : tag;
+      const span = createHighlightSpan(resolvedTag, props);
       span._wordoffset = textnode._wordoffset + startOffset
       spans.push(span);
 

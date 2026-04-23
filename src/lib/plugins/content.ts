@@ -1,6 +1,7 @@
-import { Options } from '../type';
 import { createHighlightSpan, isLeafNode } from '../utils';
+
 import { BasePlugin } from './base';
+import { Options } from '../type';
 
 export class ContentNodePlugin extends BasePlugin {
   process(currNode: HTMLElement, opt: Options) {

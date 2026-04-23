@@ -2,6 +2,7 @@
 
 <script setup>
 import Shadow from './components/Shadow.vue'
+import Svg from './components/Svg.vue'
 import Content from './components/Content.vue'
 </script>
 
@@ -15,6 +16,12 @@ import Content from './components/Content.vue'
 :::
 
 <Shadow />
+
+## SVG 文本划线
+
+> SVG 内的 `<text>` / `<tspan>` 不能嵌套 HTML `<span>`，组件会自动检测 SVG 上下文并使用 `<tspan>` 作为高亮元素
+
+<Svg />
 
 ## 特殊的正文节点
 
@@ -38,6 +45,14 @@ import Content from './components/Content.vue'
     background:transparent url("data:image/svg+xml,%3Csvg width='8' height='2' viewBox='0 0 8 2' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.25 1.5H0.75C0.335786 1.5 0 1.16421 0 0.75C0 0.335786 0.335786 0 0.75 0H3.25C3.66421 0 4 0.335786 4 0.75C4 1.16421 3.66421 1.5 3.25 1.5Z' fill='%2307C160' fill-opacity='0.5'/%3E%3C/svg%3E%0A") repeat-x 0 100%;
     background-size:auto 2px;
     padding-bottom:2px;
+  }
+
+  /* SVG <tspan> 不支持 background，改用 text-decoration 模拟划线 */
+  tspan.underline {
+    background: none;
+    padding-bottom: 0;
+    text-decoration: underline wavy rgba(7, 193, 96, 0.5);
+    text-decoration-skip-ink: none;
   }
 
   p {
