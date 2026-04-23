@@ -1,5 +1,23 @@
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
+/**
+ * 常见的 SVG 元素标签白名单，用于判断 createHighlightSpan 是否需要走 SVG 命名空间。
+ * 只覆盖可能作为高亮容器出现的标签；如有新增场景可扩充此集合。
+ */
+const SVG_TAGS = new Set([
+  'tspan',
+  'text',
+  'textPath',
+  'a',
+  'g',
+  'switch',
+  'foreignObject',
+]);
+
+export function isSvgTag(tag: string | undefined): boolean {
+  return !!tag && SVG_TAGS.has(tag);
+}
+
 export function copyObjArray(obj: any, num: number) {
   const result = [];
   for (let i = 0; i < num; i++) {
@@ -37,12 +55,22 @@ export function isInSvgText(node: Node | null | undefined): boolean {
   return false;
 }
 
-export function createHighlightSpan(tag: string | undefined, props: any) {
-  const span =
-    tag === 'tspan'
-      ? (document.createElementNS(SVG_NS, 'tspan') as unknown as HTMLElement)
-      : document.createElement(tag || 'span');
+export function createHighlightSpan(tag: string | undefined, props: Record<string, any>) {
+  const isSvg = isSvgTag(tag);
+  const span = isSvg
+    ? (document.createElementNS(SVG_NS, tag || 'tspan') as unknown as HTMLElement)
+    : document.createElement(tag || 'span');
   span.setAttribute('class', 'underline');
-  Object.keys(props).forEach(key => (span[key] = props[key]));
+  Object.keys(props).forEach(key => {
+    if (isSvg && (key === 'className' || key === 'class')) {
+      // SVG 元素的 className 是只读的 SVGAnimatedString，必须走 setAttribute
+      const cur = span.getAttribute('class') || '';
+      span.setAttribute('class', `${cur} ${props[key] || ''}`.trim());
+    } else if (isSvg && key === 'style' && typeof props[key] === 'string') {
+      span.setAttribute('style', props[key]);
+    } else {
+      (span as any)[key] = props[key];
+    }
+  });
   return span;
 }
