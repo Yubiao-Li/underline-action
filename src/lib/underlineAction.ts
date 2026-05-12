@@ -31,6 +31,7 @@ export function UnderlineAction(opt: Options) {
     mutationObserver: null,
   };
   let plugins: BasePlugin[];
+  let container: Element | null = null;
   // 保存key对应的span列表，方便删除
   const spanNodeMap = {};
   const spanMockUnderlineMap = {};
@@ -466,7 +467,11 @@ export function UnderlineAction(opt: Options) {
     if (!startContainer || !endContainer) return null;
     const range = document.createRange();
     range.setStart(startContainer, start - startContainer._wordoffset);
-    range.setEnd(endContainer, end - endContainer._wordoffset);
+    try {
+      range.setEnd(endContainer, end - endContainer._wordoffset);
+    } catch (error) {
+      range.setEndAfter(endContainer);
+    }
     return range;
   }
 
@@ -539,6 +544,7 @@ export function UnderlineAction(opt: Options) {
     plugins.forEach(p => (p.instance = this));
     state.textNodeArr = [];
     const dom = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    container = dom;
 
     computeDom(dom);
 
@@ -584,6 +590,10 @@ export function UnderlineAction(opt: Options) {
   }
   computeDomPos();
 
+  function getContainer() {
+    return container;
+  }
+
   const exportFuncs = {
     insertSpanInRange,
     getTextByStartEnd,
@@ -596,6 +606,7 @@ export function UnderlineAction(opt: Options) {
     mergeTextNode,
     getNodeAndOffset,
     getOffset,
+    getContainer,
   };
   plugins.forEach(p => {
     p.exportFuncs.forEach(f => (exportFuncs[f] = p[f].bind(p)));
